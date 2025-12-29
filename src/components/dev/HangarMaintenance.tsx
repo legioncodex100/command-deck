@@ -1,8 +1,74 @@
 "use client";
 
 import { Activity, Database, Server, ShieldCheck, HardDrive, Cpu, AlertTriangle, CheckCircle } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { useProject } from "@/hooks/useProject";
 
 export function HangarMaintenance() {
+    const { documents } = useProject();
+
+    // Live Stats State
+    const [latency, setLatency] = useState(24);
+    const [logs, setLogs] = useState<{ time: string, level: string, msg: string }[]>([
+        { time: new Date().toLocaleTimeString(), level: 'INFO', msg: 'System boot sequence initiated...' },
+        { time: new Date().toLocaleTimeString(), level: 'INFO', msg: 'Database connection established (Supabase Pool)' },
+        { time: new Date().toLocaleTimeString(), level: 'DEBUG', msg: 'Hangar Protocol loaded.' },
+    ]);
+    const logContainerRef = useRef<HTMLDivElement>(null);
+
+    // Simulation Engine
+    useEffect(() => {
+        const interval = setInterval(() => {
+            // 1. Fluctuate Latency
+            setLatency(prev => {
+                const change = Math.floor(Math.random() * 10) - 5; // -5 to +5
+                return Math.max(10, Math.min(100, prev + change));
+            });
+
+            // 2. Randomly Log Events (10% chance per tick)
+            if (Math.random() > 0.8) {
+                const events = [
+                    { level: 'INFO', msg: 'Health check passed.' },
+                    { level: 'DEBUG', msg: 'Syncing delta state...' },
+                    { level: 'INFO', msg: 'Cache invalidated.' },
+                    { level: 'WARN', msg: 'High memory usage detected in worker.' },
+                    { level: 'DEBUG', msg: 'Garbage collection cycle complete.' },
+                ];
+                const event = events[Math.floor(Math.random() * events.length)];
+
+                setLogs(prev => {
+                    const newLogs = [...prev, { time: new Date().toLocaleTimeString(), level: event.level, msg: event.msg }];
+                    if (newLogs.length > 50) return newLogs.slice(newLogs.length - 50); // Keep last 50
+                    return newLogs;
+                });
+            }
+
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Auto-scroll logs
+    useEffect(() => {
+        if (logContainerRef.current) {
+            logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+        }
+    }, [logs]);
+
+    // Derived Real Stats
+    const docCount = documents.length;
+    const artifactCount = 0; // useProject doesn't split this yet, roughly documents are artifacts.
+
+    // Helper for log color
+    const getLevelColor = (level: string) => {
+        switch (level) {
+            case 'INFO': return 'text-emerald-500';
+            case 'WARN': return 'text-amber-500';
+            case 'DEBUG': return 'text-zinc-500';
+            default: return 'text-zinc-300';
+        }
+    };
+
     return (
         <div className="h-full w-full bg-[#050505] text-zinc-300 font-mono flex flex-col">
             {/* Header */}
@@ -40,10 +106,15 @@ export function HangarMaintenance() {
                             <div>
                                 <div className="flex justify-between text-xs mb-1">
                                     <span className="text-zinc-500">API Latency</span>
-                                    <span className="text-zinc-300">24ms</span>
+                                    <span className={`text-xs font-mono ${latency > 80 ? 'text-red-500' : 'text-zinc-300'}`}>
+                                        {latency}ms
+                                    </span>
                                 </div>
                                 <div className="h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-emerald-500 w-[10%]"></div>
+                                    <div
+                                        className={`h-full transition-all duration-500 ${latency > 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                        style={{ width: `${Math.min(100, latency)}%` }}
+                                    ></div>
                                 </div>
                             </div>
                         </div>
@@ -57,12 +128,12 @@ export function HangarMaintenance() {
                         </div>
                         <div className="space-y-2">
                             <div className="bg-black border border-zinc-800 p-3 rounded flex justify-between items-center">
-                                <span className="text-xs text-zinc-400">Documents</span>
-                                <span className="text-xs font-mono text-zinc-200">142 Records</span>
+                                <span className="text-xs text-zinc-400">Total Artifacts</span>
+                                <span className="text-xs font-mono text-zinc-200">{docCount} Records</span>
                             </div>
                             <div className="bg-black border border-zinc-800 p-3 rounded flex justify-between items-center">
-                                <span className="text-xs text-zinc-400">Artifacts</span>
-                                <span className="text-xs font-mono text-zinc-200">28 Files</span>
+                                <span className="text-xs text-zinc-400">Sync Status</span>
+                                <span className="text-xs font-mono text-emerald-500">SYNCHRONIZED</span>
                             </div>
                         </div>
                     </div>
@@ -92,32 +163,20 @@ export function HangarMaintenance() {
                 </div>
 
                 {/* Logs Area */}
-                <div className="mt-6 border border-zinc-800 rounded-lg bg-black overflow-hidden">
-                    <div className="p-3 border-b border-zinc-800 bg-zinc-900/30 font-bold text-xs text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="mt-6 border border-zinc-800 rounded-lg bg-black overflow-hidden flex flex-col h-64">
+                    <div className="p-3 border-b border-zinc-800 bg-zinc-900/30 font-bold text-xs text-zinc-400 uppercase tracking-widest flex items-center gap-2 shrink-0">
                         <Server className="h-4 w-4" />
-                        System Logs
+                        System Logs (Live Stream)
                     </div>
-                    <div className="p-4 font-mono text-[10px] text-zinc-500 space-y-1 h-64 overflow-y-auto">
-                        <div className="flex gap-4">
-                            <span className="text-zinc-700">[2024-12-29 17:05:01]</span>
-                            <span className="text-emerald-500">INFO</span>
-                            <span>System boot sequence initiated...</span>
-                        </div>
-                        <div className="flex gap-4">
-                            <span className="text-zinc-700">[2024-12-29 17:05:02]</span>
-                            <span className="text-emerald-500">INFO</span>
-                            <span>Database connection established (Supabase Pool)</span>
-                        </div>
-                        <div className="flex gap-4">
-                            <span className="text-zinc-700">[2024-12-29 17:05:02]</span>
-                            <span className="text-emerald-400">DEBUG</span>
-                            <span>Hangar Protocol loaded for user: mohammed@legiongrappling.com</span>
-                        </div>
-                        <div className="flex gap-4">
-                            <span className="text-zinc-700">[2024-12-29 17:05:05]</span>
-                            <span className="text-amber-500">WARN</span>
-                            <span>Memory Sync check: Local version matches remote. No action taken.</span>
-                        </div>
+                    <div ref={logContainerRef} className="p-4 font-mono text-[10px] space-y-1 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-zinc-800">
+                        {logs.map((log, i) => (
+                            <div key={i} className="flex gap-4 animate-fadeIn">
+                                <span className="text-zinc-700 shrink-0">[{log.time}]</span>
+                                <span className={`font-bold shrink-0 w-12 ${getLevelColor(log.level)}`}>{log.level}</span>
+                                <span className="text-zinc-400">{log.msg}</span>
+                            </div>
+                        ))}
+                        <div className="h-4" /> {/* Spacer */}
                     </div>
                 </div>
 

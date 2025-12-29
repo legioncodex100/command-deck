@@ -1,5 +1,4 @@
-
-import { generateText, STRATEGY_MODEL } from "./gemini";
+import { STRATEGY_MODEL } from "./gemini";
 
 export interface ConstructionContext {
     task: any;
@@ -14,6 +13,24 @@ export interface WorkOrder {
     steps: string[];
     acceptance_criteria: string[];
     code_hints?: { filename: string; snippet: string }[];
+}
+
+// Helper for API Calls
+async function callAiApi(prompt: string, systemPrompt: string, model: string, jsonMode: boolean) {
+    const response = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ prompt, systemPrompt, model, jsonMode })
+    });
+
+    if (!response.ok) {
+        throw new Error(`AI API Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.result;
 }
 
 // Helper to clean JSON
@@ -68,7 +85,7 @@ export async function generateWorkOrder(context: ConstructionContext): Promise<a
     `;
 
     try {
-        const responseText = await generateText(prompt, systemPrompt, STRATEGY_MODEL, true);
+        const responseText = await callAiApi(prompt, systemPrompt, STRATEGY_MODEL, true);
         return cleanAndParseJSON(responseText);
     } catch (e) {
         console.error("Work Order Gen Error:", e);
@@ -106,7 +123,7 @@ export async function askEngineer(context: ConstructionContext, history: any[], 
     `;
 
     try {
-        const responseText = await generateText(fullPrompt, systemPrompt, STRATEGY_MODEL, false); // False = standard text mode
+        const responseText = await callAiApi(fullPrompt, systemPrompt, STRATEGY_MODEL, false);
         return responseText;
     } catch (e) {
         console.error("Engineer Chat Error:", e);
@@ -155,7 +172,7 @@ export async function startTaskSession(context: ConstructionContext): Promise<st
     `;
 
     try {
-        const responseText = await generateText(prompt, systemPrompt, STRATEGY_MODEL, false);
+        const responseText = await callAiApi(prompt, systemPrompt, STRATEGY_MODEL, false);
         return responseText;
     } catch (e) {
         console.error("Kickoff Error:", e);

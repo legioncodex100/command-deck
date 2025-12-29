@@ -25,11 +25,21 @@ export function useAuth() {
     }, []);
 
     const signInWithEmail = async (email: string, password: string) => {
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log("Attempting sign in for:", email);
+        const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
+        console.log("Sign in result:", { data, error });
+
         if (error) throw error;
+
+        // Check for "Unconfirmed Email" state
+        if (data.user && !data.session) {
+            throw new Error("Login successful, but email is not confirmed. Please check your inbox.");
+        }
+
+        return data;
     };
 
     const signOut = async () => {

@@ -16,6 +16,26 @@ Tracks the build evolution of the Command Deck Platform itself.
 *   **[G] Integration**: **ACTIVE BUILD** (Virtual Pillar G Implementation)
 
 ## 3. Maintenance Log
+**[2025-12-29, 22:15] Post-Pivot Verification & AI Integration**
+*   **Action**: Verified Civilian Onboarding (Created Update Password Page).
+*   **Action**: Connected EngineerChat to Gemini Backend (Server Route).
+*   **Action**: Finalized Maintenance Bay Metrics (Live Simulation).
+*   **Action**: Refined Email Templates (Ship + Matrix Theme).
+
+**[2025-12-29, 21:40] UI Polish & Login Redesign**
+*   **Action**: Complete visual overhaul of `/login` page for "Matrix Terminal" aesthetic.
+*   **Animations**:
+    *   **Logo**: Implemented "Pixel Rez" materialization effect (CSS steps + blur).
+    *   **Terminal**: Added Glitch -> Boot -> Infinite Loop phases.
+    *   **Transition**: Added "SYSTEM_INITIALIZED" full-screen overlay during auth.
+*   **Mobile Optimization**:
+    *   Relocated terminal to inline position below submit button.
+    *   Implemented "Command Line" mode (single-line typing with caret) for mobile.
+    *   Centered layout flow (Logo -> Header -> Form).
+*   **Styling**:
+    *   **Typography**: Reverted to System Monospace, reduced scaling by 25%.
+    *   **Password**: implemented custom `*` asterisk masking overlay.
+
 **[2025-12-29, 17:46] Session Checkout: SaaS Pivot Complete**
 *   **Git Commit**: `feat: implement civilian access layer and virtual pillar g`
 *   **Summary**: The platform successfully transitioned to a Multi-Tenant SaaS architecture.

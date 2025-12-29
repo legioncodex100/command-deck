@@ -212,7 +212,11 @@ export function Sidebar() {
                             {user.email}
                         </div>
                         <button
-                            onClick={signOut}
+                            onClick={async () => {
+                                await signOut();
+                                router.push("/login"); // Explicit redirect
+                                router.refresh();      // Clear server state
+                            }}
                             className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-zinc-900 transition-colors text-zinc-500 hover:text-red-400"
                         >
                             <LogOut className="h-4 w-4" />
