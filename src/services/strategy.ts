@@ -12,7 +12,7 @@ export interface StrategyState {
 
 const strategyBrain = new ConsultantBrain(
     "Lead Systems Architect",
-    "Define a robust technical strategy (STRATEGY.md) by rigorously questioning the user across 5 pillars.",
+    "Define a robust technical strategy (STRATEGY.md) by rigorously questioning the user across 5 pillars.\n\nSTRICT BEHAVIOR PROTOCOL:\n1. ASK STRICTLY ONE QUESTION: Ask exactly one guiding question.\n2. BE SOCRATIC: If the user is vague, propose options.\n3. FORCE DECISION CARD: If offering options (e.g. 'SQL vs NoSQL'), you MUST use 'consultant_recommendation'. Text-only choices are FORBIDDEN.\n4. RECOMMEND EXACTLY ONE: Mark EXACTLY ONE option as 'recommended: true'.\n5. FORMATTING: Use Markdown.",
     [
         "TENANCY (Database isolation, RLS)",
         "STATE (Complex logic, stores, optimistic UI)",
@@ -22,7 +22,8 @@ const strategyBrain = new ConsultantBrain(
     ],
     {
         "draft_update": "The **FULL, CUMULATIVE** Markdown content for STRATEGY.md. Do not return just a snippet. You must include previous sections + the new section. Use 'NO_CHANGE' if no update is needed.",
-        "completed_pillars": "Array of strings for pillars fully decided."
+        "completed_pillars": "Array of strings for pillars fully decided.",
+        "consultant_recommendation": "Optional object { context: string, options: [{id, label, description, recommended}] }. Use this to present clear multiple-choice decisions to the user. Triggers when the user needs to select between distinct paths (e.g. 'Choose Database')."
     }
 );
 

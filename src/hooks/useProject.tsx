@@ -9,14 +9,17 @@ import { Project } from "@/types/database";
 interface DeckDocument {
     id: string;
     project_id: string;
-    type: string;
+    type: string; // DocumentType in types/database.ts is more strict, but string is fine here for now
     content: string;
+    title?: string;
     created_at: string;
+    updated_at?: string;
 }
 
 interface ProjectContextType {
     projects: Project[];
     activeProject: Project | null;
+    project: Project | null; // Alias
     activeProjectId: string | null;
     documents: DeckDocument[];
     isLoading: boolean;
@@ -26,6 +29,8 @@ interface ProjectContextType {
     renameProject: (projectId: string, newName: string) => Promise<void>;
     deleteProject: (projectId: string) => Promise<void>;
     refreshProject: () => Promise<void>;
+    saveDocument: (doc: any) => Promise<void>;
+    fetchDocuments: () => Promise<void>;
     missionStatus: any;
 }
 
@@ -52,16 +57,18 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             .order("created_at", { ascending: false });
 
         if (data) {
-            setProjects(data);
+            // STEALTH PROTOCOL: Hide Hangar Core from standard project list
+            const visibleProjects = data.filter(p => p.id !== 'c0de0000-0000-0000-0000-000000000000');
+            setProjects(visibleProjects);
 
             // Restore active project from storage or default to the most recent one
             const storedId = localStorage.getItem("command_deck_active_project");
-            const isValidStored = data.find(p => p.id === storedId);
+            const isValidStored = visibleProjects.find(p => p.id === storedId);
 
             if (isValidStored) {
                 setActiveProjectId(isValidStored.id);
-            } else if (data.length > 0) {
-                setActiveProjectId(data[0].id);
+            } else if (visibleProjects.length > 0) {
+                setActiveProjectId(visibleProjects[0].id);
             } else {
                 // No projects exist, handled by UI generally, or can create one here if needed
             }
@@ -280,10 +287,72 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         return status;
     })();
 
+    // Generic save document function
+    const saveDocument = async ({ project_id, type, content, title, summary }: any) => {
+        if (!user) return;
+
+        try {
+            // Check for existing doc of this type for this project
+            const { data: existing, error: fetchError } = await supabase
+                .from("documents")
+                .select("id")
+                .eq("project_id", project_id)
+                .eq("type", type)
+                .single();
+
+            if (fetchError && fetchError.code !== 'PGRST116') {
+                // Ignore 'Row not found' (PGRST116), log others
+                console.error("Error fetching existing doc:", fetchError);
+            }
+
+            if (existing) {
+                // Update
+                const { error } = await supabase
+                    .from("documents")
+                    .update({
+                        content,
+                        title,
+                        summary,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq("id", existing.id);
+
+                if (error) console.error("Error updating doc:", JSON.stringify(error, null, 2));
+
+            } else {
+                // Insert
+                const { error } = await supabase
+                    .from("documents")
+                    .insert([{
+                        project_id,
+                        type,
+                        content,
+                        title,
+                        summary,
+                        updated_at: new Date().toISOString()
+                    }]);
+
+                if (error) console.error("Error inserting doc:", JSON.stringify(error, null, 2));
+            }
+
+            // Refresh docs
+            refreshProject();
+
+        } catch (err: any) {
+            console.error("Unexpected error in saveDocument:", err);
+        }
+    };
+
+    // Explicit fetch trigger
+    const fetchDocuments = async () => {
+        await refreshProject();
+    };
+
     return (
         <ProjectContext.Provider value={{
             projects,
             activeProject,
+            project: activeProject, // Alias for backward compatibility/ease
             activeProjectId,
             documents,
             isLoading,
@@ -293,6 +362,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             renameProject,
             deleteProject,
             refreshProject,
+            saveDocument, // New export
+            fetchDocuments, // New export
             missionStatus
         }
         }>

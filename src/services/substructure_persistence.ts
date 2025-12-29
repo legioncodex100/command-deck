@@ -1,6 +1,5 @@
 
 import { supabase } from "@/services/supabase";
-import { SchemaPillar } from "./substructure";
 
 export interface SubstructureSessionData {
     id?: string;
@@ -27,13 +26,13 @@ export async function loadSubstructureSession(projectId: string): Promise<Substr
         if (error) {
             if (error.code === 'PGRST116') return null; // No rows found
             console.error("Error loading substructure session:", error);
-            throw error;
+            return null;
         }
 
         return data as SubstructureSessionData;
     } catch (e) {
-        console.error("Failed to load session:", e);
-        return null;
+        console.error("Unexpected error loading substructure session:", e);
+        return null; // Return null to trigger fresh start logic
     }
 }
 
@@ -42,77 +41,76 @@ export async function loadSubstructureSession(projectId: string): Promise<Substr
  */
 export async function saveSubstructureSession(session: SubstructureSessionData): Promise<string | null> {
     try {
-        if (!session.project_id) {
-            throw new Error("Critical: Missing project_id in save payload");
-        }
+        const payload = {
+            project_id: session.project_id,
+            messages: session.messages,
+            schema_sql: session.schema_sql,
+            completed_pillars: session.completed_pillars,
+            updated_at: new Date().toISOString()
+        };
 
-        // 1. Check if we have an ID to update
+        // Use upsert functionality with onConflict on project_id
+        // This assumes project_id is unique or there's a constraint. 
+        // If not, we might need to rely on ID.
+        // Given the 1:1 nature, project_id SHOULD be unique in this table.
+
+        let query = supabase.from('substructure_sessions');
+        let result;
+
         if (session.id) {
-            const { error } = await supabase
-                .from('substructure_sessions')
-                .update({
-                    messages: session.messages,
-                    schema_sql: session.schema_sql,
-                    completed_pillars: session.completed_pillars,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', session.id);
-
-            if (error) throw error;
-            return session.id;
-        }
-
-        // 2. Otherwise check for existing by project_id to avoid dupes (singleton per project)
-        const existing = await loadSubstructureSession(session.project_id);
-        if (existing && existing.id) {
-            const { error } = await supabase
-                .from('substructure_sessions')
-                .update({
-                    messages: session.messages,
-                    schema_sql: session.schema_sql,
-                    completed_pillars: session.completed_pillars,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', existing.id);
-            if (error) throw error;
-            return existing.id;
-        } else {
-            // Create new
-            const { data, error } = await supabase
-                .from('substructure_sessions')
-                .insert({
-                    project_id: session.project_id,
-                    messages: session.messages,
-                    schema_sql: session.schema_sql,
-                    completed_pillars: session.completed_pillars
-                })
+            result = await query
+                .upsert({ ...payload, id: session.id })
                 .select('id')
                 .single();
+        } else {
+            // checking if one exists by project_id to avoid dups if constraint missing
+            const { data: existing } = await supabase
+                .from('substructure_sessions')
+                .select('id')
+                .eq('project_id', session.project_id)
+                .maybeSingle();
 
-            if (error) throw error;
-            return data.id;
+            if (existing) {
+                result = await query
+                    .upsert({ ...payload, id: existing.id })
+                    .select('id')
+                    .single();
+            } else {
+                result = await query
+                    .insert(payload)
+                    .select('id')
+                    .single();
+            }
         }
 
-    } catch (e: any) {
-        console.error("Failed to save substructure session:", e.message || e);
+        if (result.error) {
+            console.error("Error saving substructure session:", JSON.stringify(result.error, null, 2));
+            return null;
+        }
+
+        return result.data.id;
+    } catch (e) {
+        console.error("Unexpected error saving substructure session:", e);
         return null;
     }
 }
 
 /**
- * Deletes the substructure session for a project (Hard Reset).
+ * Deletes the substructure session for a project.
  */
-export async function deleteSubstructureSession(projectId: string): Promise<boolean> {
+export async function deleteSubstructureSession(projectId: string): Promise<void> {
     try {
         const { error } = await supabase
             .from('substructure_sessions')
             .delete()
             .eq('project_id', projectId);
 
-        if (error) throw error;
-        return true;
+        if (error) {
+            console.error("Error deleting substructure session:", error);
+            throw error;
+        }
     } catch (e) {
-        console.error("Failed to delete session", e);
-        return false;
+        console.error("Unexpected error deleting substructure session:", e);
+        throw e;
     }
 }

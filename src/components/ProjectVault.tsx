@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useProject } from "@/hooks/useProject";
 import { supabase } from "@/services/supabase";
-import { FileText, Database, Code, PenTool, Loader2, Copy, Trash2, Eye, ArrowRight } from "lucide-react";
+import { FileText, Database, Code, PenTool, Loader2, Copy, Trash2, Eye, ArrowRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TerminalModal } from "@/components/TerminalModal";
 
@@ -67,6 +67,7 @@ export function ProjectVault() {
         if (type.includes('PRD')) return FileText;
         if (type.includes('SCHEMA') || type.includes('BLUEPRINT')) return Database;
         if (type.includes('DESIGN')) return PenTool;
+        if (type.includes('STITCH')) return Sparkles;
         if (type.includes('INSTRUCTIONS')) return Code;
         return FileText;
     };
@@ -75,6 +76,8 @@ export function ProjectVault() {
         if (type.includes('PRD')) return "text-blue-400";
         if (type.includes('SCHEMA')) return "text-cyan-400";
         if (type.includes('DESIGN')) return "text-purple-400";
+        if (type.includes('STITCH')) return "text-indigo-400";
+        if (type.includes('STRATEGY')) return "text-emerald-400";
         if (type.includes('INSTRUCTIONS')) return "text-orange-400";
         return "text-zinc-400";
     };
@@ -189,6 +192,9 @@ export function ProjectVault() {
 function getPublicDocTitle(type: string) {
     switch (type) {
         case 'PRD': return 'Product Manifesto';
+        case 'STRATEGY': return 'Technical Strategy';
+        case 'DESIGN': return 'Design System DNA';
+        case 'STITCH_PROMPT': return 'Stitch Visual Protocol';
         case 'TECH_SPEC': return 'Developer Guide';
         case 'USER_GUIDE': return 'User Manual';
         default: return type.replace(/_/g, ' ');

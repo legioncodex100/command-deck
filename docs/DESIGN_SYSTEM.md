@@ -72,3 +72,26 @@ Used for panels requiring technical labeling.
 
 *   **Pulse Status**: `<div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />`
 *   **Glass Panel**: `backdrop-blur-sm bg-zinc-950/80`
+
+## 6. Layout Physics (Critical)
+
+> **The "Infinite Scroll" Bug**: In CSS Grid, flex children default to `min-height: auto`. This means they expand to fit content rather than shrinking to fit the parent container, breaking scrollbars.
+
+**Rule 1: The Constraint Layer**
+Every direct child of a main 12-column grid MUST have `overflow-hidden`.
+```tsx
+<div className="col-span-4 ... overflow-hidden flex flex-col">
+   {/* This forces the header + scrollable content to fit the viewport height */}
+</div>
+```
+
+**Rule 2: The Scrollable Core**
+The inner scrolling container must be `flex-1` and `overflow-y-auto`.
+```tsx
+<div className="flex-1 overflow-y-auto ... custom-scrollbar">
+  {/* Long content here */}
+</div>
+```
+
+**Rule 3: Height Propagation**
+The root container must have `h-full` (and the parent chain in `layout.tsx` must propagate 100vh).

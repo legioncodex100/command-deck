@@ -27,7 +27,8 @@ export interface AuditLog {
     created_at: string; // timestamptz
 }
 
-export type DocumentType = 'PRD' | 'STRATEGY' | 'DESIGN' | 'SCHEMA' | 'TECH_SPEC' | 'USER_GUIDE' | 'INSTRUCTIONS' | 'BACKLOG';
+export type DocumentType = 'PRD' | 'STRATEGY' | 'DESIGN' | 'SCHEMA' | 'TECH_SPEC' | 'USER_GUIDE' | 'INSTRUCTIONS' | 'BACKLOG' | 'STITCH_PROMPT' | 'SPRINT' | 'PLANNING_CHAT' | 'CONSTRUCTION_CHAT'
+    | 'RELAY_A' | 'RELAY_B' | 'RELAY_C' | 'RELAY_D' | 'RELAY_E' | 'RELAY_F';
 
 export interface Document {
     id: string; // uuid
@@ -37,4 +38,26 @@ export interface Document {
     title?: string;
     summary?: string;
     created_at: string; // timestamptz
+    updated_at?: string; // timestamptz
+}
+
+export type UserRole = 'COMMANDER' | 'PILOT' | 'CIVILIAN';
+
+export interface Profile {
+    id: string; // uuid
+    email: string;
+    display_name: string | null;
+    role: UserRole;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Invitation {
+    id: string;
+    email: string;
+    token: string;
+    invited_by: string; // uuid
+    status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
+    created_at: string;
+    expires_at: string;
 }

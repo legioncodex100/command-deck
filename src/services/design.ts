@@ -17,75 +17,115 @@ export async function analyzeVisualContext(base64Image: string): Promise<string>
     return await analyzeImage(prompt, base64Image);
 }
 
-// CREATIVE DIRECTOR PERSONA
-const directorBrain = new ConsultantBrain(
-    "Creative Director",
-    "Extract visual intent, brand keywords, and tokens into a robust DESIGN.md artifact.",
-    ["Analyze PRD & Strategy for Brand Identity", "Define Color Palette (Hex)", "Establish Typography", "Define Design Tokens"],
+export const designBrain = new ConsultantBrain(
+    "Facade Architect",
+    "Technical Design Systems Expert. Generates Stitch Prompts and extracts atomic tokens.\n\nSTRICT BEHAVIOR PROTOCOL:\n1. ASK STRICTLY ONE QUESTION: Ask exactly one guiding question locally.\n2. BE SOCRATIC: Propose options if vague.\n3. FORCE DECISION CARD: If offering options, you MUST use 'consultant_recommendation'. Text-only choices are FORBIDDEN.\n4. RECOMMEND EXACTLY ONE: Mark EXACTLY ONE option as 'recommended: true'.\n5. IMMEDIATE ACTION: If you say you are going to generate or update the design/prompt, YOU MUST DO IT IN THIS RESPONSE. Do not say 'I will do this'. DO IT NOW in the `stitch_prompt` or `design_document` fields.",
+    ["Engineering Domain Atmosphere", "Defining Layout Topology", "Enforcing Atomic Constraints"],
     {
-        "PRD": "Product Requirements Document",
-        "STRATEGY": "Technical Strategy"
+        "stitch_prompt": "Current Stitch Prompt content. MUST be formatted in Markdown. MUST include a section '## Screen Specifications' listing every required screen with detailed layout logic based on the schema. Use Headers for sections (## Visual, ## Layout, ## Screen Specifications) and Bullet points for lists. Do not produce a single wall of text.",
+        "design_document": "The current Markdown content of the Design Specification. You must maintain this document, adding new decisions (Colors, Typography, Layout, Atmosphere) as they are made in the chat. Do not reset it, just append or refine.",
+        "consultant_recommendation": "Optional object { context: string, options: [{id, label, description, recommended}] }."
     }
 );
 
-export async function generateDesignTokens(context: { prd: string, strategy: string, schema?: string, imageAnalysis?: string }, history: any[] = []): Promise<any> {
+export async function sendDesignMessage(
+    message: string,
+    history: { role: 'user' | 'model', text: string }[],
+    context: { prd: string, strategy: string, schema?: string, imageAnalysis?: string, currentStitchPrompt?: string, currentDesignDoc?: string },
+    complexity: 'BEGINNER' | 'INTERMEDIATE' | 'EXPERT' = 'INTERMEDIATE'
+): Promise<{
+    message: string,
+    stitchPrompt?: string,
+    designDocument?: string,
+    consultantRecommendation?: {
+        context: string,
+        options: { id: string, label: string, description: string, recommended: boolean }[]
+    }
+}> {
 
     const combinedContext = `
     PRD CONTENT:
-    ${context.prd.substring(0, 10000)}
+    ${context.prd.substring(0, 5000)}
 
     STRATEGY CONTENT:
     ${context.strategy.substring(0, 5000)}
 
-    ${context.schema ? `SCHEMA (DATA STRUCTURE):
-    ${context.schema.substring(0, 5000)}
-    ` : ''}
+    ${context.schema ? `SCHEMA (DATA STRUCTURE) - CRITICAL SOURCE OF TRUTH:
+    ${context.schema.substring(0, 3000)}
+    INSTRUCTION: THE SCHEMA IS THE BLUEPRINT. YOU MUST EXTRACT EVERY SINGLE TABLE/ENTITY AND DESIGN A CORRESPONDING LIST SCREEN AND DETAIL SCREEN.
+    
+    EXAMPLE OUTPUT FORMAT (Follow this structure):
+    ## Screen Specifications
+    ### 1. User Dashboard (Table: users)
+    - **Layout**: Sidebar navigation, 3-column grid for 'Recent Activity'.
+    - **Data Binding**: Display 'username', 'avatar_url', and 'last_login' from 'users' table.
+    - **Actions**: 'Edit Profile' button links to Settings.
+    
+    ### 2. Project List (Table: projects)
+    - **Layout**: Card-based masonry grid.
+    - **Components**: Search bar, Filter dropdown (by status).
+    
+    YOU MUST GENERATE A LIST LIKE THE ABOVE FOR EVERY TABLE IN THE SCHEMA.` : ''}
 
     ${context.imageAnalysis ? `IMAGE ANALYSIS CONTEXT:\n${context.imageAnalysis}` : ''}
-    `;
 
-    const instructions = `
-    You are the **Creative Director** (World-Class UI/UX Expert).
-    Your goal is to extract visual intent and generate a 'DESIGN.md' Design System.
+    ${context.currentStitchPrompt ? `CURRENT STITCH PROMPT (Refine this):
+    ${context.currentStitchPrompt.substring(0, 5000)}` : ''}
 
-    **INTERACTION PROTOCOL (v4.1 - The Master Track):**
-    You must guide the user through this 6-Stage Master Track to achieve "Pixel-Perfect" synthesis.
-    1. **Domain & Strategy**: Identify domain (SaaS, Game, FinTech). Align with Strategy.
-    2. **Schema-UX Mapping**: Analyze SCHEMA.sql. High data density (Tables)? Low density (Cards)?
-    3. **Aesthetic Philosophy**: Define Atmosphere (Cyber-Industrial, Minimalist).
-    4. **Atomic DNA Extraction**: Synthesize absolute design tokens (Color scales, corner radii).
-    5. **Master Stitch Synthesis**: Generate a high-bandwidth prompt for Google Stitch.
-    6. **DNA Reconciliation**: Reverse-engineer tokens into DESIGN.md.
-
-    **PROACTIVE BEHAVIOR:**
-    1. **Lead the Room**: If ambiguous, **PROPOSE 3 DISTINCT VISUAL DIRECTIONS** using 'consultant_recommendation'.
-    2. **Decision Cards**: Use 'consultant_recommendation' for any branching choice.
-    3. **Final Artifacts**: 
-       - When ready, output 'DESIGN.md' in the 'message' field.
-       - **CRITICAL**: You must ALSO generate 'STITCH_PROMPT.md' content in the 'stitch_prompt' JSON field.
-
-    **AESTHETIC RULES:**
-    - Hex #000000 Background, Geist Sans, 1px Borders (#27272a).
-    - "Logic-to-Skin": Justify density/radius choices with SCHEMA/STRATEGY constraints.
-
-    **OUTPUT FORMAT (JSON):**
-    - "message": Chat text OR full 'DESIGN.md' markdown.
-    - "consultant_recommendation": { options: [...] }
-    - "stitch_prompt": "String containing the Google Stitch high-fidelity prompt..." (Only when finalizing).
+    ${context.currentDesignDoc ? `CURRENT DESIGN SPECIFICATION (Append/Refine this):
+    ${context.currentDesignDoc.substring(0, 8000)}` : `CURRENT DESIGN SPECIFICATION: (Empty, start creating one)`}
     `;
 
     try {
-        const response = await directorBrain.processInteraction(
+        const response = await designBrain.processInteraction(
             history,
-            instructions,
+            message,
             combinedContext,
-            'EXPERT'
+            complexity
         );
 
-        // Return the full structured response (message + recommendations)
-        return response;
+        return {
+            message: response.message || "Design engine unreachable.",
+            stitchPrompt: response.stitch_prompt,
+            designDocument: response.design_document,
+            consultantRecommendation: response.consultant_recommendation
+        };
     } catch (e) {
-        console.error("Design Token Gen Error:", e);
-        throw e;
+        console.error("Design Engine Error:", e);
+        return {
+            message: "Design Engine offline.",
+            stitchPrompt: ""
+        };
     }
+}
+
+export function extractDesignDNA(code: string) {
+    // Regex extractors for Tailwind classes
+    const colors = new Set<string>();
+    const radii = new Set<string>();
+    const typography = new Set<string>();
+
+    // Parse Colors (bg-*, text-*, border-*) - simplifed for hex and standard scales
+    const bgMatches = code.match(/bg-\[#[0-9a-fA-F]{6}\]/g) || [];
+    const textMatches = code.match(/text-\[#[0-9a-fA-F]{6}\]/g) || [];
+    const borderMatches = code.match(/border-\[#[0-9a-fA-F]{6}\]/g) || [];
+
+    // Add standard tailwind colors if found
+    const standardMatches = code.match(/(bg|text|border)-(zinc|slate|gray|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-[0-9]{2,3}/g) || [];
+
+    [...bgMatches, ...textMatches, ...borderMatches, ...standardMatches].forEach(m => colors.add(m));
+
+    // Parse Radius
+    const radiusMatches = code.match(/rounded-(sm|md|lg|xl|2xl|3xl|full|none|\[.*?\])/g) || [];
+    radiusMatches.forEach(m => radii.add(m));
+
+    // Parse Typography (font-*, text-*, tracking-*)
+    const typeMatches = code.match(/(font-(sans|serif|mono)|text-(xs|sm|base|lg|xl|2xl|3xl)|tracking-(tighter|tight|normal|wide|widest))/g) || [];
+    typeMatches.forEach(m => typography.add(m));
+
+    return {
+        colors: Array.from(colors).slice(0, 10), // Limit reasonable amount
+        radii: Array.from(radii).slice(0, 5),
+        typography: Array.from(typography).slice(0, 8)
+    };
 }

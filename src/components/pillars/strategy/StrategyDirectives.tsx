@@ -1,0 +1,42 @@
+"use client";
+
+import React from 'react';
+import { Brain, ShieldCheck } from 'lucide-react';
+
+interface StrategyDirectivesProps {
+    pillars: string[];
+    currentPRDTitle?: string;
+}
+
+export function StrategyDirectives({ pillars, currentPRDTitle }: StrategyDirectivesProps) {
+    const PillarItem = ({ label, done }: { label: string, done: boolean }) => (
+        <div className={`p-3 border-l-2 flex items-center justify-between transition-colors ${done ? 'bg-emerald-950/10 border-emerald-500' : 'bg-transparent border-zinc-800'}`}>
+            <span className={`text-xs font-mono font-bold tracking-wider ${done ? 'text-emerald-400' : 'text-zinc-600'}`}>{label}</span>
+            {done && <ShieldCheck className="h-4 w-4 text-emerald-500" />}
+        </div>
+    );
+
+    return (
+        <div className="col-span-2 border-r border-emerald-500/10 flex flex-col overflow-hidden">
+            <header className="p-4 flex flex-col gap-1 mb-2 shrink-0">
+                <h2 className="text-sm font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2">
+                    <Brain className="h-4 w-4" /> Strategy Room
+                </h2>
+                <p className="text-[10px] text-zinc-600">PHASE 12.3 // ACTIVE</p>
+            </header>
+
+            <div className="flex-1 overflow-y-auto px-4 scrollbar-thin scrollbar-thumb-emerald-900/50 flex flex-col gap-1">
+                {["TENANCY", "STATE", "BOUNDARIES", "PRIVACY", "INFRASTRUCTURE"].map(p => (
+                    <PillarItem key={p} label={p} done={pillars.some(active => active.toUpperCase() === p.toUpperCase())} />
+                ))}
+            </div>
+
+            <div className="p-4 mt-auto shrink-0">
+                <div className="p-3 border border-emerald-500/20 bg-emerald-950/20 rounded">
+                    <div className="text-[10px] text-emerald-600 font-bold mb-1">CONTEXT LINK</div>
+                    <div className="text-xs text-emerald-400 truncate">{currentPRDTitle || 'No PRD Linked'}</div>
+                </div>
+            </div>
+        </div>
+    );
+}

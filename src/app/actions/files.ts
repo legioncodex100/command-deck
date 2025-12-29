@@ -2,6 +2,9 @@
 
 import fs from 'fs';
 import path from 'path';
+import { createClient } from '@/utils/supabase/server';
+
+const IS_HOST = process.env.NODE_ENV !== 'production'; // Simplistic check for now, ideally check auth role
 
 export async function updateInstructionsFile(content: string) {
     if (process.env.NODE_ENV === 'production') {
@@ -30,6 +33,41 @@ export async function updateInstructionsFile(content: string) {
 }
 
 export async function updateArchitectureFile(content: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Check Role
+    let isCivilian = true;
+    if (user) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (profile?.role === 'COMMANDER') isCivilian = false;
+    }
+
+    // VIRTUAL PILLAR G (Civilians)
+    if (isCivilian) {
+        if (!user) return { success: false, message: "Unauthorized" };
+
+        // Find their project (Assume single project for MVP or pass project_id)
+        const { data: project } = await supabase.from('projects').select('id').eq('user_id', user.id).single();
+        if (!project) return { success: false, message: "No Project Found" };
+
+        const timestamp = new Date().toISOString();
+        const newContent = `\n\n## Substructure Snapshot (${timestamp})\n\`\`\`sql\n${content}\n\`\`\``;
+
+        // Upsert to 'documents' table
+        const { error } = await supabase.from('documents').upsert({
+            project_id: project.id,
+            type: 'SCHEMA', // We treat Architecture updates as Schema/Tech Spec updates
+            title: 'Architecture Snapshot',
+            content: newContent, // Note: This overwrites or we need to append logic. For DB, usually we keep latest version.
+            updated_at: timestamp
+        });
+
+        if (error) return { success: false, message: error.message };
+        return { success: true };
+    }
+
+    // PHYSICAL PILLAR G (Host)
     if (process.env.NODE_ENV === 'production') {
         console.warn("File writes disabled in production.");
         return { success: false, message: "Use local dev only." };
@@ -37,11 +75,6 @@ export async function updateArchitectureFile(content: string) {
 
     try {
         const filePath = path.join(process.cwd(), 'docs', 'ARCHITECTURE.md');
-
-        // Append or Replace? Let's Append a new section for the Substructure
-        // Or maybe replace the "Database Schema" section? 
-        // For MVP simplicity, we will append it as a "Latest Schema Snapshot".
-
         const timestamp = new Date().toISOString();
         const newContent = `\n\n## Substructure Snapshot (${timestamp})\n\`\`\`sql\n${content}\n\`\`\``;
 

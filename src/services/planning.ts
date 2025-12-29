@@ -1,61 +1,159 @@
-import { generateText } from "./gemini";
 
-// Mocks the behavior of generating a backlog from PRD + Strategy
-// In a real scenario, this would send a prompt to Gemini with both documents attached.
+import { generateText, STRATEGY_MODEL } from "./gemini";
 
-const PLANNING_SYSTEM_PROMPT = `
-You are the "Master Planner" for Command Deck.
-Your goal is to bridge the gap between the Product Vision (PRD) and Technical Strategy (STRATEGY).
-You must decompose the project into a prioritized, 10-Phase Build Plan (BACKLOG.md).
+interface PlanningContext {
+    prd: string;
+    strategy: string;
+    design: string;
+    schema?: string;
+}
 
-**Input:**
-- PRD.md (User Stories & Features)
-- STRATEGY.md (Technical Decisions & Constraints)
+// Helper to clean JSON
+const cleanAndParseJSON = (text: string): any => {
+    let cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (jsonMatch) cleaned = jsonMatch[0];
+    try {
+        return JSON.parse(cleaned);
+    } catch (e) {
+        console.error("JSON Parse Fail:", text);
+        // Fallback for when model returns partial text + json
+        return { message: "Analysis complete (Partial JSON)", tasks: [] };
+    }
+};
 
-**Output Format (Markdown):**
-Return a "BACKLOG.md" file content.
-Structure it logically by Phases (Phase 1, Phase 2, etc.).
-Each item must have:
-- [ ] Task Name (Difficulty: Low/Med/High)
-  - Technical Note: (e.g. "Use Stripe Connect" based on Strategy)
-  - Priority: Critical/High/Medium
+export async function evaluateHandover(context: PlanningContext): Promise<string> {
+    const systemPrompt = `
+    You are the Senior Technical Project Manager (PM).
+    You have just received the DESIGN HANDOVER (Pillar D -> Pillar E).
+    
+    **GOAL**:
+    Greet the user and provide a high-level summary of what was handed over.
+    
+    **OUTPUT FORMAT**:
+    A single conversational message (Paragraphs + Bullets).
+    Step 1: Acknowledge the inputs (e.g., "I've reviewed the design for [Project Name]...").
+    Step 2: Highlight key constraints or design choices from the context.
+    Step 3: Propose the next immediate step (usually "Shall we decompose this into a backlog?").
+    
+    Keep it professional, concise, and focused on moving to PLANNING.
+    `;
 
-**Rules:**
-- Phase 1 is always "Foundation & Scaffolding".
-- Phase 10 is always "Launch & Handover".
-- Ensure strict adherence to the tech stack defined in Strategy.
-`;
-
-export async function generateBacklog(prdContent: string, strategyContent: string) {
     const prompt = `
-    PRD CONTENT:
-    ${prdContent.substring(0, 10000)}
+    INCOMING CONTEXT:
+    PRD Summary: ${context.prd.substring(0, 2000)}
+    Strategy Summary: ${context.strategy.substring(0, 1000)}
+    Design Handover: ${context.design.substring(0, 4000)}
 
-    STRATEGY CONTENT:
-    ${strategyContent.substring(0, 5000)}
-
-    Generate the BACKLOG.md now.
+    TASK: Write the initial PM greeting and evaluation message.
     `;
 
     try {
-        // Use the strategy model (Gemini 2.5) for high reasoning
-        // We reuse the generic generateText function
-        const text = await generateText(
-            prompt,
-            PLANNING_SYSTEM_PROMPT,
-            "gemini-2.0-flash-exp", // Using 2.0 Flash for speed/context window balance, or switch to 2.5 if needed
-            false // Markdown mode
-        );
-        return text;
-    } catch (error) {
-        console.error("Backlog Generation Error:", error);
-        throw error;
+        return await generateText(prompt, systemPrompt, STRATEGY_MODEL, false);
+    } catch (e) {
+        console.error("Handover Eval Error:", e);
+        return "System: Error evaluating handover. Ready to plan.";
     }
 }
 
-export interface BuildItem {
-    id: string;
-    description: string;
-    accepted: boolean;
-    phase: number;
+export async function decomposeToBacklog(context: PlanningContext, history: any[] = []): Promise<any> {
+    const systemPrompt = `
+    You are the Senior Technical Project Manager.
+    Your goal is to convert the PRD, Strategy, and Design into a **BACKLOG.md** artifact and a structued Task List.
+
+    **DECOMPOSITION RULES:**
+    1.  **Dependency Analysis**: Determine the logical sequence (Schema -> Auth -> API -> UI).
+    2.  **Granularity**: Atomic sub-tasks (2-4 per story).
+    3.  **Cross-Check**: Align with Strategy & Design.
+    4.  **Prioritization**: P0 (Blockers), P1 (Core), P2 (Polish).
+    5.  **Markdown Format**: In the backlog_artifact, lists tasks EXACTLY as: - [ ] **TASK-ID**: Title
+
+    **OUTPUT FORMAT (JSON ONLY):**
+    You must output a SINGLE JSON object. Do not include any conversational text outside the JSON.
+    {
+        "message": "Backlog generated successfully.",
+        "backlog_artifact": "# Project Backlog\\n\\n## Phase 1...",
+        "tasks": [
+            { "id": "TAS-1", "title": "Setup DB", "priority": "P0", "phase": "Phase 1: Foundation", "status": "BACKLOG" }
+        ]
+    }
+    `;
+
+    const prompt = `
+    CONTEXT:
+    PRD: ${context.prd.substring(0, 5000)}
+    STRATEGY: ${context.strategy.substring(0, 3000)}
+    DESIGN: ${context.design.substring(0, 3000)}
+    SCHEMA: ${context.schema?.substring(0, 3000) || "N/A"}
+
+    TASK: Decompose this into a detailed backlog.
+    `;
+
+    try {
+        const responseText = await generateText(prompt, systemPrompt, STRATEGY_MODEL, true);
+        return cleanAndParseJSON(responseText);
+    } catch (e) {
+        console.error("Backlog Gen Error:", e);
+        throw e;
+    }
+}
+
+export async function assessRisks(context: PlanningContext): Promise<any> {
+    const systemPrompt = `
+    You are the Lead Solutions Architect.
+    Analyze the project for technical risks, bottlenecks, and complexity spikes.
+
+    **OUTPUT FORMAT (JSON ONLY):**
+    {
+        "message": "Risk assessment complete.",
+        "risk_artifact": "# Risk Assessment\\n\\n## Technical Risks\\n- [HIGH] ...",
+        "tasks": [] 
+    }
+    `;
+
+    const prompt = `
+    CONTEXT:
+    PRD: ${context.prd.substring(0, 5000)}
+    STRATEGY: ${context.strategy.substring(0, 3000)}
+
+    TASK: Perform a technical risk assessment.
+    `;
+
+    try {
+        const responseText = await generateText(prompt, systemPrompt, STRATEGY_MODEL, true);
+        return cleanAndParseJSON(responseText);
+    } catch (e) {
+        console.error("Risk Gen Error:", e);
+        throw e;
+    }
+}
+
+export async function createRoadmap(context: PlanningContext): Promise<any> {
+    const systemPrompt = `
+    You are the Engineering Director.
+    Create a step-by-step Implementation Roadmap.
+
+    **OUTPUT FORMAT (JSON ONLY):**
+    {
+        "message": "Roadmap generated.",
+        "roadmap_artifact": "# Implementation Roadmap\\n\\n1. **Week 1**: ...",
+        "tasks": []
+    }
+    `;
+
+    const prompt = `
+    CONTEXT:
+    PRD: ${context.prd.substring(0, 5000)}
+    STRATEGY: ${context.strategy.substring(0, 3000)}
+
+    TASK: Create a sequential implementation roadmap.
+    `;
+
+    try {
+        const responseText = await generateText(prompt, systemPrompt, STRATEGY_MODEL, true);
+        return cleanAndParseJSON(responseText);
+    } catch (e) {
+        console.error("Roadmap Gen Error:", e);
+        throw e;
+    }
 }

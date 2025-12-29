@@ -12,9 +12,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProject } from "@/hooks/useProject";
 import { useState } from "react";
 import { Stage } from "@/types/database";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ProjectManagerModal } from "@/components/ProjectManagerModal";
-import { Settings } from "lucide-react";
+import { Settings, LogIn, LogOut, Rocket } from "lucide-react";
 
 // 11 Pillars of the Command Deck
 type Pillar = {
@@ -27,22 +27,23 @@ type Pillar = {
 
 const PILLARS: Pillar[] = [
     { letter: 'A', label: 'Discovery Lab', href: '/discovery', icon: Search, stage: 'DISCOVERY' },
-    { letter: 'I', label: 'Strategy Room', href: '/strategy', icon: CenterCircle, stage: 'STRATEGY' },
-    { letter: 'J', label: 'Planning Hub', href: '/planning', icon: DataBlob, stage: 'PLANNING' },
-    { letter: 'B', label: 'Substructure', href: '/substructure', icon: DataBase, stage: 'SUBSTRUCTURE' },
-    { letter: 'H', label: 'Design Studio', href: '/design', icon: ColorPalette, stage: 'DESIGN' },
-    { letter: 'C', label: 'Construction', href: '/construction', icon: Construction, stage: 'CONSTRUCTION' },
+    { letter: 'B', label: 'Strategy Room', href: '/strategy', icon: CenterCircle, stage: 'STRATEGY' },
+    { letter: 'C', label: 'Substructure', href: '/substructure', icon: DataBase, stage: 'SUBSTRUCTURE' },
+    { letter: 'D', label: 'Design Studio', href: '/design', icon: ColorPalette, stage: 'DESIGN' },
+    { letter: 'E', label: 'Planning Hub', href: '/planning', icon: DataBlob, stage: 'PLANNING' },
+    { letter: 'F', label: 'Construction', href: '/construction', icon: Construction, stage: 'CONSTRUCTION' },
     { letter: 'G', label: 'Integration', href: '/integration', icon: Integration, stage: 'INTEGRATION' },
-    { letter: 'D', label: 'Auditor Lab', href: '/audit', icon: CertificateCheck, stage: 'AUDIT' },
-    { letter: 'E', label: 'Context Bridge', href: '/memory', icon: MachineLearningModel, stage: 'MEMORY' },
-    { letter: 'F', label: 'Doc Engine', href: '/docs', icon: Document, stage: 'HANDOVER' },
+    { letter: 'H', label: 'Auditor Lab', href: '/audit', icon: CertificateCheck, stage: 'AUDIT' },
+    { letter: 'I', label: 'Context Bridge', href: '/memory', icon: MachineLearningModel, stage: 'MEMORY' },
+    { letter: 'J', label: 'Doc Engine', href: '/docs', icon: Document, stage: 'HANDOVER' },
     { letter: 'K', label: 'Mission Mural', href: '/chronology', icon: Calendar, stage: 'CHRONOLOGY' },
 ];
 
 export function Sidebar() {
-    const { signOut } = useAuth();
+    const { signOut, user } = useAuth();
     const { projects, activeProject, createProject, switchProject, isLoading } = useProject();
     const router = useRouter();
+    const pathname = usePathname();
     const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
     const [isManagerOpen, setIsManagerOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
@@ -75,10 +76,10 @@ export function Sidebar() {
                     <div className="h-8 w-8 rounded bg-zinc-900 text-emerald-500 flex items-center justify-center shrink-0 font-bold border border-zinc-800">
                         {isLoading ? "..." : (activeProject?.name.substring(0, 1) || "+")}
                     </div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity text-left whitespace-nowrap overflow-hidden text-sm font-medium flex-1">
+                    <div className="hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-300 text-left whitespace-nowrap overflow-hidden text-sm font-medium flex-1">
                         {isLoading ? "Loading..." : activeProject?.name || "Select Project"}
                     </div>
-                    <ChevronDown className="h-4 w-4 opacity-0 group-hover:opacity-100 shrink-0 text-zinc-500" />
+                    <ChevronDown className="h-4 w-4 hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-300 shrink-0 text-zinc-500" />
                 </button>
 
                 {/* Dropdown Menu */}
@@ -146,7 +147,7 @@ export function Sidebar() {
             />
 
             {/* Navigation Body */}
-            <nav className="flex flex-col gap-1 flex-1 w-full px-2 overflow-y-auto scrollbar-hide">
+            <nav className="flex flex-col gap-1 flex-1 w-full px-1 overflow-y-auto scrollbar-hide">
 
                 {/* Mission Hub (Dashboard) Link */}
                 <Link
@@ -154,17 +155,17 @@ export function Sidebar() {
                     className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-zinc-900 transition-colors text-zinc-300 hover:text-white mb-4 group/item"
                 >
                     <Dashboard className="h-5 w-5 text-emerald-500" />
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium whitespace-nowrap">
+                    <span className="hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-300 text-sm font-medium whitespace-nowrap">
                         Mission Hub
                     </span>
                 </Link>
 
-                <div className="px-2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+                <div className="px-2 mb-2 hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-300 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
                     The 11 Pillars
                 </div>
 
                 {PILLARS.map((item) => {
-                    const isActive = activeProject?.current_stage === item.stage;
+                    const isActive = pathname?.startsWith(item.href);
                     const Icon = item.icon;
 
                     return (
@@ -172,19 +173,19 @@ export function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "relative w-full flex items-center gap-3 p-2 rounded-md transition-all group/item",
+                                "relative w-full flex items-center justify-between gap-1 group-hover:gap-3 px-1 group-hover:px-2 py-2 rounded-md transition-all group/item",
                                 isActive
-                                    ? "bg-zinc-900 text-emerald-400 border border-zinc-800"
-                                    : "text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-200 border border-transparent"
+                                    ? "bg-emerald-950/30 text-emerald-400 border border-emerald-500/20"
+                                    : "text-zinc-400 hover:bg-emerald-950/20 hover:text-emerald-400/80 border border-transparent"
                             )}
                         >
-                            <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-emerald-500" : "text-zinc-500 group-hover/item:text-zinc-300")} />
+                            <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-emerald-500" : "text-zinc-500 group-hover/item:text-emerald-500/70")} />
 
-                            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium whitespace-nowrap flex-1">
+                            <span className="hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-300 text-sm font-medium whitespace-nowrap flex-1">
                                 {item.label}
                             </span>
 
-                            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono text-zinc-600 border border-zinc-800 rounded px-1">
+                            <span className="text-[10px] font-bold font-mono text-zinc-500 border border-zinc-800 rounded px-1.5 py-0.5 group-hover/item:text-emerald-400 group-hover/item:border-emerald-500/30 shrink-0 bg-zinc-900/50">
                                 {item.letter}
                             </span>
                         </Link>
@@ -192,8 +193,41 @@ export function Sidebar() {
                 })}
             </nav>
 
-            <div className="w-full px-2 mb-4">
+            <div className="w-full px-2 mb-4 mt-auto flex flex-col gap-2">
+                {/* Admin Only: Hangar Entry */}
+                {user?.email === 'mohammed@legiongrappling.com' && (
+                    <Link
+                        href="/hangar"
+                        className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-indigo-950/20 transition-colors text-zinc-500 hover:text-indigo-400 mb-2 border border-transparent hover:border-indigo-500/20 group"
+                    >
+                        <Rocket className="h-4 w-4" />
+                        <span className="text-xs font-mono font-bold tracking-widest hidden group-hover:block animate-in fade-in slide-in-from-left-2 duration-300 whitespace-nowrap">HANGAR PROTOCOL</span>
+                    </Link>
+                )}
 
+                {/* Auth Control */}
+                {user ? (
+                    <div className="flex flex-col gap-1">
+                        <div className="px-2 text-[10px] text-zinc-600 truncate font-mono mb-1 hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-300">
+                            {user.email}
+                        </div>
+                        <button
+                            onClick={signOut}
+                            className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-zinc-900 transition-colors text-zinc-500 hover:text-red-400"
+                        >
+                            <LogOut className="h-4 w-4" />
+                            <span className="text-xs font-medium hidden group-hover:block animate-in fade-in slide-in-from-left-2 duration-300 whitespace-nowrap">Sign Out</span>
+                        </button>
+                    </div>
+                ) : (
+                    <Link
+                        href="/login"
+                        className="w-full flex items-center gap-3 p-2 rounded-md bg-zinc-900 hover:bg-zinc-800 transition-colors text-zinc-300 hover:text-white border border-zinc-800"
+                    >
+                        <LogIn className="h-4 w-4" />
+                        <span className="text-sm font-bold">Sign In</span>
+                    </Link>
+                )}
             </div>
         </aside>
     );

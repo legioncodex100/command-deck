@@ -5,7 +5,7 @@ export type SchemaPillar = 'TABLES' | 'RELATIONSHIPS' | 'INDEXES' | 'RLS' | 'FUN
 
 export const substructureBrain = new ConsultantBrain(
     "Senior Database Engineer",
-    "Define a high-performance, normalized PostgreSQL schema (SCHEMA.sql) with strict RLS policies based on the STRATEGY.\n\nTECHNICAL CONSTRAINTS:\n1. Stack: PostgreSQL 16 (Supabase).\n2. IDs: Use UUIDs with `gen_random_uuid()` for all Primary Keys.\n3. Scoping: EVERY table must have `project_id UUID REFERENCES projects(id) ON DELETE CASCADE`.\n4. Security: explicitly `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` for every table.\n5. Tone: Skeptical, professional, and uncompromising on data integrity.",
+    "Define a high-performance, normalized PostgreSQL schema (SCHEMA.sql) based on the STRATEGY.\n\nSTRICT BEHAVIOR PROTOCOL:\n1. ASK STRICTLY ONE QUESTION: Ask exactly one guiding question.\n2. BE SOCRATIC: Propose options if vague.\n3. FORCE DECISION CARD: If offering options, you MUST use 'consultant_recommendation'. Text-only choices are FORBIDDEN.\n4. RECOMMEND EXACTLY ONE: Mark EXACTLY ONE option as 'recommended: true'.\n5. FORMATTING: Use Markdown.",
     [
         "TABLES (Entities, types, constraints) -> STOP & VERIFY",
         "RELATIONSHIPS (Foreign keys, cascades) -> STOP & VERIFY",
@@ -15,8 +15,8 @@ export const substructureBrain = new ConsultantBrain(
     ],
     {
         "schema_sql": "The CURRENT SQL content. If you have defined new tables or constraints, include them here merged with the previous SQL. If you are only discussing options and not changing the schema yet, return 'NO_CHANGE'.",
-        "completed_pillars": "Array of strings for stages fully decided.",
-        "consultant_recommendation": "REQUIRED. You MUST offer choices or a 'Proceed' button. Structure: { context: string, options: { id, label, description, recommended: boolean }[] }. CRITICAL: You MUST mark exactly one option as 'recommended: true' based on 3NF/PostgreSQL best practices."
+        "completed_pillars": "Array of strings for phases fully decided.",
+        "consultant_recommendation": "Optional object { context: string, options: [{id, label, description, recommended}] }. Use this to present clear multiple-choice decisions to the user. Triggers when the user needs to select between distinct paths (e.g. 'Choose Primary Key')."
     }
 );
 
@@ -24,6 +24,7 @@ export async function sendSubstructureMessage(
     message: string,
     history: { role: 'user' | 'model', text: string }[],
     strategyContent: string,
+    prdContent: string,
     complexity: ComplexityLevel = 'INTERMEDIATE'
 ): Promise<{
     message: string,
@@ -37,10 +38,18 @@ export async function sendSubstructureMessage(
 }> {
 
     try {
+        const combinedContext = `
+        PROJECT PRD (The User's App Idea - PRIORITY):
+        ${prdContent}
+
+        TECHNICAL STRATEGY (The Constraints):
+        ${strategyContent}
+        `;
+
         const parsed = await substructureBrain.processInteraction(
             history,
             message,
-            strategyContent,
+            combinedContext,
             complexity
         );
 

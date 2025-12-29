@@ -83,3 +83,23 @@ export async function saveDiscoverySession(session: Partial<DiscoverySessionData
         return null;
     }
 }
+
+/**
+ * Deletes the discovery session for a project.
+ */
+export async function deleteDiscoverySession(projectId: string): Promise<void> {
+    try {
+        const { error } = await supabase
+            .from('discovery_sessions')
+            .delete()
+            .eq('project_id', projectId);
+
+        if (error) {
+            console.error("Error deleting discovery session:", error);
+            throw error;
+        }
+    } catch (e) {
+        console.error("Unexpected error deleting discovery session:", e);
+        throw e;
+    }
+}

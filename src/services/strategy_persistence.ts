@@ -104,3 +104,23 @@ export async function saveStrategySession(session: StrategySessionData): Promise
         return null;
     }
 }
+
+/**
+ * Deletes the strategy session for a project.
+ */
+export async function deleteStrategySession(projectId: string): Promise<void> {
+    try {
+        const { error } = await supabase
+            .from('strategy_sessions')
+            .delete()
+            .eq('project_id', projectId);
+
+        if (error) {
+            console.error("Error deleting strategy session:", error);
+            throw error;
+        }
+    } catch (e) {
+        console.error("Unexpected error deleting strategy session:", e);
+        throw e;
+    }
+}
