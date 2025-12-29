@@ -7,7 +7,7 @@ export interface StaleStatus {
     upstreamDoc?: DocumentType;
 }
 
-const DEPENDENCY_MAP: Record<DocumentType, DocumentType[]> = {
+const DEPENDENCY_MAP: Partial<Record<DocumentType, DocumentType[]>> = {
     'STRATEGY': ['PRD'],
     'SCHEMA': ['STRATEGY'], // Substructure depends on Strategy
     'DESIGN': ['SCHEMA', 'STRATEGY'], // Design depends on Schema & Strategy

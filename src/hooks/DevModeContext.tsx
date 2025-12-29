@@ -10,6 +10,7 @@ interface DevModeContextType {
         showSLSScanner: boolean;
         showRippleTrigger: boolean;
         staleSimulation: boolean;
+        xRayMode: boolean;
     };
     setDebugFlags: React.Dispatch<React.SetStateAction<{
         showContextInspector: boolean;
