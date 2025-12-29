@@ -27,7 +27,7 @@ export default function UpdatePasswordPage() {
 
             setSuccess(true);
             setTimeout(() => {
-                router.push("/");
+                router.push("/setup-profile");
             }, 2000);
 
         } catch (err: any) {

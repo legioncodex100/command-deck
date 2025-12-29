@@ -16,6 +16,12 @@ Tracks the build evolution of the Command Deck Platform itself.
 *   **[G] Integration**: **ACTIVE BUILD** (Virtual Pillar G Implementation)
 
 ## 3. Maintenance Log
+**[2025-12-29, 23:05] Feature Complete: Civilian Onboarding**
+*   **Action**: Implemented `src/app/setup-profile` for Name/Avatar collection.
+*   **Action**: Added `src/services/storage.ts` for handling avatar uploads.
+*   **Verification**: Validated full Invite -> Password -> Profile -> Dashboard flow.
+*   **Infrastructure**: Added `SUPABASE_SERVICE_ROLE_KEY` to environment.
+
 **[2025-12-29, 22:15] Post-Pivot Verification & AI Integration**
 *   **Action**: Verified Civilian Onboarding (Created Update Password Page).
 *   **Action**: Connected EngineerChat to Gemini Backend (Server Route).
