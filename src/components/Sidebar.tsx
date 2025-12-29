@@ -10,11 +10,12 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useProject } from "@/hooks/useProject";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Stage } from "@/types/database";
 import { useRouter, usePathname } from "next/navigation";
 import { ProjectManagerModal } from "@/components/ProjectManagerModal";
-import { Settings, LogIn, LogOut, Rocket } from "lucide-react";
+import { Settings, LogIn, LogOut, Rocket, User as UserIcon } from "lucide-react";
+import { supabase } from "@/services/supabase";
 
 // 11 Pillars of the Command Deck
 type Pillar = {
@@ -48,6 +49,26 @@ export function Sidebar() {
     const [isManagerOpen, setIsManagerOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const [newProjectName, setNewProjectName] = useState("");
+    const [profile, setProfile] = useState<{ display_name: string, role: string, avatar_url: string | null } | null>(null);
+
+    // Fetch Profile on mount or user change
+    useEffect(() => {
+        if (user) {
+            supabase.from('profiles').select('*').eq('id', user.id).single()
+                .then(({ data }) => {
+                    if (data) {
+                        setProfile(data);
+                    }
+                    // Also check auth metadata for avatar if profile is missing it or strictly stick to one source?
+                    // Let's rely on profiles table but fallback to metadata if needed
+                    if (!data?.avatar_url && user.user_metadata?.avatar_url) {
+                        setProfile(prev => prev ? ({ ...prev, avatar_url: user.user_metadata.avatar_url }) : ({ display_name: '', role: 'OPERATIVE', avatar_url: user.user_metadata.avatar_url }));
+                    }
+                });
+        } else {
+            setProfile(null);
+        }
+    }, [user]);
 
     const handleCreateSubmit = async () => {
         if (!newProjectName.trim()) {
@@ -193,35 +214,74 @@ export function Sidebar() {
                 })}
             </nav>
 
-            <div className="w-full px-2 mb-4 mt-auto flex flex-col gap-2">
+            <div className="w-full px-2 mb-4 mt-auto flex flex-col gap-2 border-t border-zinc-900/50 pt-2">
                 {/* Admin Only: Hangar Entry */}
                 {user?.email === 'mohammed@legiongrappling.com' && (
                     <Link
                         href="/hangar"
-                        className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-indigo-950/20 transition-colors text-zinc-500 hover:text-indigo-400 mb-2 border border-transparent hover:border-indigo-500/20 group"
+                        className="w-full flex items-center justify-center group-hover:justify-start gap-3 p-2 rounded-md hover:bg-indigo-950/20 transition-colors text-zinc-500 hover:text-indigo-400 mb-2 border border-transparent hover:border-indigo-500/20 group"
                     >
                         <Rocket className="h-4 w-4" />
                         <span className="text-xs font-mono font-bold tracking-widest hidden group-hover:block animate-in fade-in slide-in-from-left-2 duration-300 whitespace-nowrap">HANGAR PROTOCOL</span>
                     </Link>
                 )}
 
-                {/* Auth Control */}
+                {/* Auth Control (Avatar Mode) */}
                 {user ? (
-                    <div className="flex flex-col gap-1">
-                        <div className="px-2 text-[10px] text-zinc-600 truncate font-mono mb-1 hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-300">
-                            {user.email}
+                    <div className="flex flex-col gap-2">
+
+                        {/* Profile Link (Avatar + Name) */}
+                        <Link href="/profile" className="flex items-center justify-center group-hover:justify-start gap-3 p-1.5 rounded-lg hover:bg-zinc-900 transition-all group/profile w-full overflow-hidden">
+                            {/* Avatar (Always Visible) */}
+                            <div className="h-9 w-9 rounded-full bg-zinc-800 border-2 border-zinc-700 overflow-hidden shrink-0 flex items-center justify-center relative">
+                                {profile?.avatar_url || user.user_metadata?.avatar_url ? (
+                                    <img
+                                        src={profile?.avatar_url || user.user_metadata?.avatar_url}
+                                        alt="User"
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    <UserIcon className="h-4 w-4 text-zinc-500" />
+                                )}
+                            </div>
+
+                            {/* Name & Role (Visible on Expand) */}
+                            <div className="flex flex-col gap-0.5 hidden group-hover:block animate-in fade-in slide-in-from-left-2 duration-300 overflow-hidden">
+                                <span className="text-sm font-bold text-white truncate max-w-[140px]">
+                                    {profile?.display_name || user.email?.split('@')[0]}
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] font-mono text-emerald-500 uppercase tracking-wider bg-emerald-950/30 px-1 rounded border border-emerald-500/20">
+                                        {profile?.role || "OPERATIVE"}
+                                    </span>
+                                </div>
+                            </div>
+                        </Link>
+
+                        {/* Controls (Settings + Logout) - Visible on Expand */}
+                        <div className="flex items-center gap-1 hidden group-hover:flex animate-in fade-in slide-in-from-bottom-2 duration-300 px-1">
+                            <Link
+                                href="/profile"
+                                className="flex-1 flex items-center justify-center gap-2 p-1.5 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors text-xs font-medium border border-zinc-800"
+                                title="Settings"
+                            >
+                                <Settings className="h-3 w-3" />
+                                <span className="sr-only">Settings</span>
+                            </Link>
+                            <button
+                                onClick={async () => {
+                                    await signOut();
+                                    router.push("/login");
+                                    router.refresh();
+                                }}
+                                className="flex-1 flex items-center justify-center gap-2 p-1.5 rounded bg-zinc-900 hover:bg-red-950/30 text-zinc-400 hover:text-red-400 transition-colors text-xs font-medium border border-zinc-800 hover:border-red-900/30"
+                                title="Sign Out"
+                            >
+                                <LogOut className="h-3 w-3" />
+                                <span className="sr-only">Sign Out</span>
+                            </button>
                         </div>
-                        <button
-                            onClick={async () => {
-                                await signOut();
-                                router.push("/login"); // Explicit redirect
-                                router.refresh();      // Clear server state
-                            }}
-                            className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-zinc-900 transition-colors text-zinc-500 hover:text-red-400"
-                        >
-                            <LogOut className="h-4 w-4" />
-                            <span className="text-xs font-medium hidden group-hover:block animate-in fade-in slide-in-from-left-2 duration-300 whitespace-nowrap">Sign Out</span>
-                        </button>
+
                     </div>
                 ) : (
                     <Link
@@ -229,7 +289,7 @@ export function Sidebar() {
                         className="w-full flex items-center gap-3 p-2 rounded-md bg-zinc-900 hover:bg-zinc-800 transition-colors text-zinc-300 hover:text-white border border-zinc-800"
                     >
                         <LogIn className="h-4 w-4" />
-                        <span className="text-sm font-bold">Sign In</span>
+                        <span className="hidden group-hover:block font-bold text-sm">Sign In</span>
                     </Link>
                 )}
             </div>
