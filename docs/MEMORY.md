@@ -21,6 +21,10 @@ Build a "civilian-facing" interface (The Deck) for the Legion Grappling CRM, all
     - Implement "Resend Invite" functionality for admins (Completed).
     - Verify full production deployment.
 
+### Configuration
+- **Production Domain**: `https://command-deck.dev` (Configured in Supabase Auth).
+- **Storage Policy**: Auto-cleanup of old avatars on new upload.
+
 ### Session: Identity Protocol & Progression
 - **Goal**: Implement dual identity (Legal/Code Name), uniqueness, and automated rank progression.
 - **Accomplished**:

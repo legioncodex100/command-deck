@@ -24,7 +24,11 @@ export async function inviteCivilian(email: string) {
     const adminClient = createAdminClient();
 
     // Generates a link like: site.com/update-password?access_token=...
-    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email);
+    // We explicitly set the redirect to /update-password to ensure they land on the setup page
+    // Using the configured Site URL from Supabase settings is safest if we don't have a specific ENV
+    const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
+        redirectTo: 'https://command-deck.dev/update-password'
+    });
 
     if (error) {
         console.error("Invite Error:", error);
