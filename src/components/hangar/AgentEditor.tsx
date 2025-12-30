@@ -186,7 +186,10 @@ export default function AgentEditor({ agent, onClose }: AgentEditorProps) {
                                     value={formData.model_config?.model || 'gemini-1.5-flash'}
                                     onChange={e => setFormData({
                                         ...formData,
-                                        model_config: { ...formData.model_config, model: e.target.value }
+                                        model_config: {
+                                            model: e.target.value,
+                                            temperature: formData.model_config?.temperature ?? 0.7
+                                        }
                                     })}
                                     className="w-full bg-black border border-emerald-900/50 rounded p-2 text-emerald-100 text-xs font-mono focus:border-emerald-500 outline-none"
                                 >
@@ -206,7 +209,10 @@ export default function AgentEditor({ agent, onClose }: AgentEditorProps) {
                                     value={formData.model_config?.temperature || 0.7}
                                     onChange={e => setFormData({
                                         ...formData,
-                                        model_config: { ...formData.model_config, temperature: parseFloat(e.target.value) }
+                                        model_config: {
+                                            model: formData.model_config?.model ?? 'gemini-1.5-flash',
+                                            temperature: parseFloat(e.target.value)
+                                        }
                                     })}
                                     className="w-full accent-emerald-500 cursor-pointer"
                                 />
