@@ -27,11 +27,20 @@ Include:
 Output Format: Markdown.
 `;
 
+import { getAgentByKey } from "./crew";
+
+// ... existing imports
+
 export async function generateTechSpec(blueprintContext: string) {
     if (!apiKey) throw new Error("API Key missing");
 
+    const agent = await getAgentByKey('tech_lead');
+    const systemPrompt = agent?.system_prompt || TECH_SPEC_PROMPT;
+    const modelName = agent?.model_config?.model || "gemini-2.0-flash-exp";
+    const activeModel = genAI.getGenerativeModel({ model: modelName });
+
     try {
-        const result = await model.generateContent(`${TECH_SPEC_PROMPT}\n\nBLUEPRINT CONTEXT:\n${blueprintContext}`);
+        const result = await activeModel.generateContent(`${systemPrompt}\n\nBLUEPRINT CONTEXT:\n${blueprintContext}`);
         return result.response.text();
     } catch (e) {
         console.error("Tech Spec Gen Error:", e);
@@ -42,8 +51,13 @@ export async function generateTechSpec(blueprintContext: string) {
 export async function generateUserGuide(blueprintContext: string) {
     if (!apiKey) throw new Error("API Key missing");
 
+    const agent = await getAgentByKey('product_manager');
+    const systemPrompt = agent?.system_prompt || USER_GUIDE_PROMPT;
+    const modelName = agent?.model_config?.model || "gemini-2.0-flash-exp";
+    const activeModel = genAI.getGenerativeModel({ model: modelName });
+
     try {
-        const result = await model.generateContent(`${USER_GUIDE_PROMPT}\n\nBLUEPRINT CONTEXT:\n${blueprintContext}`);
+        const result = await activeModel.generateContent(`${systemPrompt}\n\nBLUEPRINT CONTEXT:\n${blueprintContext}`);
         return result.response.text();
     } catch (e) {
         console.error("User Guide Gen Error:", e);

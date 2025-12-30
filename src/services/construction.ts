@@ -46,33 +46,15 @@ const cleanAndParseJSON = (text: string): any => {
     }
 };
 
-export async function generateWorkOrder(context: ConstructionContext): Promise<any> {
-    const systemPrompt = `
-    You are the Lead Engineer.
-    Your goal is to generate a detailed "Work Order" for a specific task.
-    
-    The Work Order should provide the developer with EVERYTHING they need to build the task without looking elsewhere.
-    - Context (Why?)
-    - Technical Specs (What?)
-    - Implementation Steps (How?)
-    - Acceptance Criteria (Success?)
+import { getAgentByKey } from "./crew";
 
-    **OUTPUT FORMAT (JSON ONLY):**
-    {
-        "technical_context": "Brief summary of how this fits into the architecture.",
-        "steps": [
-            "Step 1: Create file X...",
-            "Step 2: Import Y..."
-        ],
-        "acceptance_criteria": [
-            "Feature works when...",
-            "Tests pass..."
-        ],
-        "code_hints": [
-            { "filename": "utils.ts", "snippet": "function helper() {...}" }
-        ]
-    }
-    `;
+// ... existing imports
+
+export async function generateWorkOrder(context: ConstructionContext): Promise<any> {
+    const agent = await getAgentByKey('lead_engineer');
+    // Fallback if DB is empty/offline
+    const systemPrompt = agent ? agent.system_prompt : `You are the Lead Engineer... (FALLBACK)`;
+    const model = agent && agent.model_config ? agent.model_config.model : STRATEGY_MODEL;
 
     const prompt = `
     CONTEXT:
@@ -85,7 +67,7 @@ export async function generateWorkOrder(context: ConstructionContext): Promise<a
     `;
 
     try {
-        const responseText = await callAiApi(prompt, systemPrompt, STRATEGY_MODEL, true);
+        const responseText = await callAiApi(prompt, systemPrompt, model, true);
         return cleanAndParseJSON(responseText);
     } catch (e) {
         console.error("Work Order Gen Error:", e);
@@ -94,14 +76,9 @@ export async function generateWorkOrder(context: ConstructionContext): Promise<a
 }
 
 export async function askEngineer(context: ConstructionContext, history: any[], question: string): Promise<string> {
-    const systemPrompt = `
-    You are the Senior Software Engineer assisting with the build.
-    You are an expert in React, Node.js, and Supabase.
-    
-    - Be concise and code-focused.
-    - If the user asks for code, provide full, copy-pasteable blocks.
-    - Refuse non-technical questions.
-    `;
+    const agent = await getAgentByKey('senior_software_engineer');
+    const systemPrompt = agent?.system_prompt || `You are the Senior Software Engineer... (FALLBACK)`;
+    const model = agent?.model_config?.model || STRATEGY_MODEL;
 
     const prompt = `
     CONTEXT:
@@ -123,7 +100,7 @@ export async function askEngineer(context: ConstructionContext, history: any[], 
     `;
 
     try {
-        const responseText = await callAiApi(fullPrompt, systemPrompt, STRATEGY_MODEL, false);
+        const responseText = await callAiApi(fullPrompt, systemPrompt, model, false);
         return responseText;
     } catch (e) {
         console.error("Engineer Chat Error:", e);
@@ -132,35 +109,9 @@ export async function askEngineer(context: ConstructionContext, history: any[], 
 }
 
 export async function startTaskSession(context: ConstructionContext): Promise<string> {
-    const systemPrompt = `
-    You are the Lead Engineer and Architect.
-    A developer is starting a new task. Your job is to GUIDE them through the build process iteratively.
-
-    Kickoff Protocol:
-    1.  **Summarize**: Briefly explain what we are building and why (1-2 sentences).
-    2.  **Implementation Plan**: Outline the 2-3 major steps to build this.
-    3.  **Step 1 Prompt**: Provide a SPECIFIC, COPY-PASTEABLE PROMPT that the developer should feed into their AI Editor (Windsurf, Cursor, etc.) to implement Step 1.
-    
-    Structure your response like this:
-    "**Task Kickoff: [Task Name]**
-    
-    [Summary]
-    
-    **The Plan:**
-    1. [Step 1]
-    2. [Step 2]...
-    
-    ---
-    
-    **READY? Let's start with Step 1.**
-    Copy this into your AI Editor:
-    
-    \`\`\`
-    [Detailed Prompt for AI Editor to write the code for Step 1]
-    \`\`\`
-    
-    Report back when done!"
-    `;
+    const agent = await getAgentByKey('lead_engineer');
+    const systemPrompt = agent?.system_prompt || `You are the Lead Engineer... (FALLBACK)`;
+    const model = agent?.model_config?.model || STRATEGY_MODEL;
 
     const prompt = `
     TASK: ${JSON.stringify(context.task)}
@@ -172,7 +123,7 @@ export async function startTaskSession(context: ConstructionContext): Promise<st
     `;
 
     try {
-        const responseText = await callAiApi(prompt, systemPrompt, STRATEGY_MODEL, false);
+        const responseText = await callAiApi(prompt, systemPrompt, model, false);
         return responseText;
     } catch (e) {
         console.error("Kickoff Error:", e);

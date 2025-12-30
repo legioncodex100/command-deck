@@ -10,12 +10,14 @@ import {
     Activity, // Maintenance
     LogOut, // Exit
     Terminal,
-    Users // Civilians
+    Users, // Civilians
+    Bot // AI Crew
 } from 'lucide-react';
 
 const HANGAR_ITEMS = [
     { label: 'Evolution Lab', href: '/hangar', icon: GitBranch }, // Default view
     { label: 'Flight Deck', href: '/hangar/flight', icon: Layout },
+    { label: 'Synthetic Division', href: '/hangar/ai', icon: Bot },
     { label: 'Civilian Registry', href: '/hangar/civilians', icon: Users },
     { label: 'Maintenance Bay', href: '/hangar/maintenance', icon: Activity },
 ];

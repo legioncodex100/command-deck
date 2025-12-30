@@ -222,7 +222,18 @@ export function HangarCivilians() {
                                         >
                                             <Send className={`h-4 w-4 ${resendingEmail === profile.email ? 'animate-pulse opacity-50' : ''}`} />
                                         </button>
-                                        <button className="p-1.5 hover:bg-red-950/30 text-zinc-600 hover:text-red-500 rounded transition-colors" title="Revoke Access">
+                                        <button
+                                            onClick={async () => {
+                                                if (confirm(`REVOKE ACCESS for ${profile.email}? This cannot be undone.`)) {
+                                                    const { deleteUser } = await import("@/app/actions/admin");
+                                                    const res = await deleteUser(profile.id);
+                                                    if (res?.error) alert("Error: " + res.error);
+                                                    else loadCivilians();
+                                                }
+                                            }}
+                                            className="p-1.5 hover:bg-red-950/30 text-zinc-600 hover:text-red-500 rounded transition-colors"
+                                            title="Revoke Access"
+                                        >
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                     </div>

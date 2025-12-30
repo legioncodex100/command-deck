@@ -39,7 +39,7 @@ export default function HangarLayout({
     return (
         <div className="h-screen w-screen bg-black overflow-hidden flex">
             <HangarSidebar />
-            <main className="flex-1 h-full overflow-hidden bg-[#050505] pl-16">
+            <main className="flex-1 h-full overflow-y-auto bg-[#050505] pl-16">
                 {children}
             </main>
         </div>

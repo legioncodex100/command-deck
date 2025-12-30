@@ -169,6 +169,8 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [isSigningIn, setIsSigningIn] = useState(false);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
+    const [resetSent, setResetSent] = useState(false);
 
     const emailInputRef = useRef<HTMLInputElement>(null);
 
@@ -245,75 +247,142 @@ export default function LoginPage() {
                             </h1>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            setError(null);
+
+                            if (isForgotPassword) {
+                                if (!email) return setError("EMAIL_REQUIRED");
+                                setIsSigningIn(true);
+                                const { forgotPassword } = await import("@/app/actions/auth");
+                                const res = await forgotPassword(email);
+                                setIsSigningIn(false);
+                                if (res.error) setError(res.error);
+                                else setResetSent(true);
+                                return;
+                            }
+
+                            // Normal Login
+                            handleSubmit(e);
+                        }} className="space-y-6">
+
                             {error && (
                                 <div className="bg-emerald-900/20 text-emerald-400 p-4 border-l-2 border-emerald-500 font-mono text-sm">
                                     &gt; ERROR: {error}
                                 </div>
                             )}
 
-                            <div className="space-y-6 font-mono text-base">
-                                <div className="space-y-2 group">
-                                    <label className="block text-emerald-700 uppercase tracking-wider text-xs group-focus-within:text-emerald-400 transition-colors">
-                                        &gt; Enter Identity [Email]:
-                                    </label>
-                                    <div className="flex items-center gap-2 border-b border-emerald-800 group-focus-within:border-emerald-500 transition-colors py-1">
-                                        <span className="text-emerald-500 animate-pulse">_</span>
-                                        <input
-                                            ref={emailInputRef}
-                                            type="email"
-                                            disabled={isSigningIn}
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full bg-black text-emerald-500 focus:outline-none placeholder:text-emerald-900 uppercase"
-                                            autoComplete="off"
-                                        />
+                            {resetSent ? (
+                                <div className="space-y-6 text-center">
+                                    <div className="bg-emerald-900/10 border border-emerald-500/30 p-6 rounded">
+                                        <div className="text-emerald-400 font-bold mb-2">RECOVERY SIGNAL BROADCASTED</div>
+                                        <p className="text-emerald-700 text-sm">Check your secure frequency (email) for the reset token.</p>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsForgotPassword(false);
+                                            setResetSent(false);
+                                            setError(null);
+                                        }}
+                                        className="text-emerald-500 hover:text-emerald-400 underline text-sm tracking-widest uppercase"
+                                    >
+                                        [RETURN TO LOGIN]
+                                    </button>
                                 </div>
-
-                                <div className="space-y-2 group">
-                                    <label className="block text-emerald-700 uppercase tracking-wider text-xs group-focus-within:text-emerald-400 transition-colors">
-                                        &gt; Enter Passcode [Key]:
-                                    </label>
-                                    <div className="relative flex items-center gap-2 border-b border-emerald-800 group-focus-within:border-emerald-500 transition-colors py-1">
-                                        <span className="text-emerald-500 animate-pulse">_</span>
-                                        <div className="relative w-full">
-                                            {/* VISUAL OVERLAY: Renders asterisks */}
-                                            <div className="absolute inset-0 flex items-center pointer-events-none text-emerald-500 font-mono">
-                                                {password.split('').map((_, i) => (
-                                                    <span key={i}>*</span>
-                                                ))}
+                            ) : (
+                                <>
+                                    <div className="space-y-6 font-mono text-base">
+                                        {/* EMAIL FLIED (ALWAYS VISIBLE) */}
+                                        <div className="space-y-2 group">
+                                            <label className="block text-emerald-700 uppercase tracking-wider text-xs group-focus-within:text-emerald-400 transition-colors">
+                                                &gt; Enter Identity [Email]:
+                                            </label>
+                                            <div className="flex items-center gap-2 border-b border-emerald-800 group-focus-within:border-emerald-500 transition-colors py-1">
+                                                <span className="text-emerald-500 animate-pulse">_</span>
+                                                <input
+                                                    ref={emailInputRef}
+                                                    type="email"
+                                                    disabled={isSigningIn}
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    className="w-full bg-black text-emerald-500 focus:outline-none placeholder:text-emerald-900 uppercase"
+                                                    autoComplete="off"
+                                                />
                                             </div>
-                                            {/* ACTUAL INPUT: Transparent text, visible caret */}
-                                            <input
-                                                type="password"
-                                                disabled={isSigningIn}
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                className="w-full bg-transparent text-transparent caret-emerald-500 focus:outline-none font-mono relative z-10"
-                                            />
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <button
-                                type="submit"
-                                disabled={isSigningIn}
-                                className="mt-8 w-full group relative overflow-hidden bg-emerald-900/20 border border-emerald-500/50 hover:bg-emerald-500 text-emerald-500 hover:text-black transition-all duration-300 p-4 text-base uppercase tracking-[0.2em]"
-                            >
-                                {isSigningIn ? (
-                                    <span className="flex items-center justify-center gap-3">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        Authenticating...
-                                    </span>
-                                ) : (
-                                    <span className="flex items-center justify-center gap-4">
-                                        <span>Initialize Link</span>
-                                        <span className="group-hover:translate-x-2 transition-transform">→</span>
-                                    </span>
-                                )}
-                            </button>
+                                        {/* PASSWORD FIELD (HIDDEN IN FORGOT PASSWORD MODE) */}
+                                        {!isForgotPassword && (
+                                            <div className="space-y-2 group animate-in slide-in-from-top-2 fade-in duration-300">
+                                                <div className="flex justify-between items-center">
+                                                    <label className="block text-emerald-700 uppercase tracking-wider text-xs group-focus-within:text-emerald-400 transition-colors">
+                                                        &gt; Enter Passcode [Key]:
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setIsForgotPassword(true);
+                                                            setError(null);
+                                                        }}
+                                                        className="text-[10px] text-zinc-600 hover:text-emerald-500 uppercase tracking-widest transition-colors font-mono"
+                                                    >
+                                                        [FORGOT KEY?]
+                                                    </button>
+                                                </div>
+                                                <div className="relative flex items-center gap-2 border-b border-emerald-800 group-focus-within:border-emerald-500 transition-colors py-1">
+                                                    <span className="text-emerald-500 animate-pulse">_</span>
+                                                    <div className="relative w-full">
+                                                        <div className="absolute inset-0 flex items-center pointer-events-none text-emerald-500 font-mono">
+                                                            {password.split('').map((_, i) => (
+                                                                <span key={i}>*</span>
+                                                            ))}
+                                                        </div>
+                                                        <input
+                                                            type="password"
+                                                            disabled={isSigningIn}
+                                                            value={password}
+                                                            onChange={(e) => setPassword(e.target.value)}
+                                                            className="w-full bg-transparent text-transparent caret-emerald-500 focus:outline-none font-mono relative z-10"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isSigningIn}
+                                        className="mt-8 w-full group relative overflow-hidden bg-emerald-900/20 border border-emerald-500/50 hover:bg-emerald-500 text-emerald-500 hover:text-black transition-all duration-300 p-4 text-base uppercase tracking-[0.2em]"
+                                    >
+                                        {isSigningIn ? (
+                                            <span className="flex items-center justify-center gap-3">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                Processing...
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center justify-center gap-4">
+                                                <span>{isForgotPassword ? "INITIATE RECOVERY" : "INITIALIZE LINK"}</span>
+                                                <span className="group-hover:translate-x-2 transition-transform">→</span>
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    {isForgotPassword && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsForgotPassword(false);
+                                                setError(null);
+                                            }}
+                                            className="block w-full text-center text-[10px] text-zinc-600 hover:text-emerald-500 uppercase tracking-widest mt-4 transition-colors font-mono"
+                                        >
+                                            [CANCEL RECOVERY]
+                                        </button>
+                                    )}
+                                </>
+                            )}
 
                             {/* MOBILE ANIMATION: Compact Matrix Terminal - INLINE BELOW BUTTON */}
                             <div className="block lg:hidden mt-4 border-t border-emerald-900/30 pt-4">

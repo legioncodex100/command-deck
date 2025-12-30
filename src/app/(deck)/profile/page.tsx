@@ -178,6 +178,25 @@ export default function ProfilePage() {
                 }
             });
 
+            // Handle Password Update if inputs exist
+            // We use standard form data access for the password fields since we didn't use state for them (to keep it clean)
+            const form = e.target as HTMLFormElement;
+            const newPassword = (form.elements.namedItem("new-password") as HTMLInputElement)?.value;
+            const confirmPassword = (form.elements.namedItem("confirm-password") as HTMLInputElement)?.value;
+
+            if (newPassword || confirmPassword) {
+                if (newPassword !== confirmPassword) throw new Error("Passcodes do not match.");
+                if (newPassword.length < 6) throw new Error("Passcode must be at least 6 chars.");
+
+                const { updatePassword } = await import("@/app/actions/auth");
+                const res = await updatePassword(newPassword);
+                if (res.error) throw new Error(res.error);
+
+                // Clear fields on success
+                (form.elements.namedItem("new-password") as HTMLInputElement).value = "";
+                (form.elements.namedItem("confirm-password") as HTMLInputElement).value = "";
+            }
+
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
 
@@ -371,6 +390,41 @@ export default function ProfilePage() {
                                 disabled
                                 className="w-full bg-zinc-900/50 border border-zinc-800 rounded px-3 py-2 text-zinc-400 cursor-not-allowed font-mono"
                             />
+                        </div>
+
+                        {/* PASSWORD CHANGE SECTION */}
+                        <div className="pt-6 border-t border-zinc-800/50 mt-6 space-y-4">
+                            <h3 className="text-sm font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2">
+                                <Shield className="h-4 w-4" />
+                                Security Encryption
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-mono uppercase tracking-wider text-zinc-500">
+                                        New Passcode
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="new-password"
+                                        autoComplete="new-password"
+                                        className="w-full bg-black border border-zinc-800 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition-colors font-mono"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-mono uppercase tracking-wider text-zinc-500">
+                                        Confirm Passcode
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="confirm-password"
+                                        autoComplete="new-password"
+                                        className="w-full bg-black border border-zinc-800 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition-colors font-mono"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
 

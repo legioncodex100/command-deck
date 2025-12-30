@@ -5,10 +5,10 @@ const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
 export interface DesignPreferences {
-    mood: string;
-    density: 'Compact' | 'Default' | 'Spacious';
-    radius: 'Sharp' | 'Subtle' | 'Round';
-    description: string;
+  mood: string;
+  density: 'Compact' | 'Default' | 'Spacious';
+  radius: 'Sharp' | 'Subtle' | 'Round';
+  description: string;
 }
 
 const STITCH_PROMPT_SYSTEM = `
@@ -54,10 +54,19 @@ If you cannot find a specific values, infer reasonable defaults based on the cod
 RETURN ONLY JSON. NO MARKDOWN.
 `;
 
-export async function generateStitchPrompt(prefs: DesignPreferences) {
-    if (!apiKey) throw new Error("API Key missing");
+import { getAgentByKey } from "./crew";
 
-    const prompt = `
+// ... existing imports
+
+export async function generateStitchPrompt(prefs: DesignPreferences) {
+  if (!apiKey) throw new Error("API Key missing");
+
+  const agent = await getAgentByKey('facade_architect');
+  const systemPrompt = agent?.system_prompt || STITCH_PROMPT_SYSTEM; // Fallback
+  const modelName = agent?.model_config?.model || "gemini-2.0-flash-exp";
+  const activeModel = genAI.getGenerativeModel({ model: modelName });
+
+  const prompt = `
     Generate a Stitch Prompt for:
     Mood: ${prefs.mood}
     Density: ${prefs.density}
@@ -65,26 +74,26 @@ export async function generateStitchPrompt(prefs: DesignPreferences) {
     Description: ${prefs.description}
     `;
 
-    try {
-        const result = await model.generateContent(`${STITCH_PROMPT_SYSTEM}\n\n${prompt}`);
-        return result.response.text();
-    } catch (e) {
-        console.error("Stitch Prompt Gen Error:", e);
-        throw e;
-    }
+  try {
+    const result = await activeModel.generateContent(`${systemPrompt}\n\n${prompt}`);
+    return result.response.text();
+  } catch (e) {
+    console.error("Stitch Prompt Gen Error:", e);
+    throw e;
+  }
 }
 
 export async function extractDesignTokens(htmlCode: string) {
-    if (!apiKey) throw new Error("API Key missing");
+  if (!apiKey) throw new Error("API Key missing");
 
-    try {
-        const result = await model.generateContent(`${EXTRACTION_SYSTEM}\n\nCODE TO ANALYZE:\n${htmlCode.substring(0, 30000)}`); // Limit context window just in case
-        const text = result.response.text();
-        // Clean markdown code blocks if present
-        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(jsonStr);
-    } catch (e) {
-        console.error("Token Extraction Error:", e);
-        throw e;
-    }
+  try {
+    const result = await model.generateContent(`${EXTRACTION_SYSTEM}\n\nCODE TO ANALYZE:\n${htmlCode.substring(0, 30000)}`); // Limit context window just in case
+    const text = result.response.text();
+    // Clean markdown code blocks if present
+    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    console.error("Token Extraction Error:", e);
+    throw e;
+  }
 }

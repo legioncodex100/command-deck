@@ -51,3 +51,20 @@ Build a "civilian-facing" interface (The Deck) for the Legion Grappling CRM, all
 - **Key Decisions**:
     - **Supabase Service Key**: Required for admin invite actions (`inviteCivilian`).
     - **Profile Table**: Utilizing `public.profiles` linked to `auth.users` via `id`.
+
+### Session: Synthetic Division (AI Crew Management)
+- **Goal**: Centralize and manage AI Consultants (Agents) within the Hangar dashboard.
+- **Accomplished**:
+    - **Schema**: Created `ai_crew` table with JSONB `model_config` and `is_locked` protection.
+    - **Migration**: Seeded 12 Core Agents using a Star Trek roster (Quark, Seven of Nine, Picard, etc.).
+    - **UI**: Built `/hangar/ai` for fleet visibility and `AgentEditor` for "Tuning" (Prompts/Models).
+    - **Service Layer**: Refactored `construction.ts`, `facade.ts`, and `documentation.ts` to fetch dynamic instructions from the DB via `crew.ts`.
+- **Key Decisions**:
+    - **Global State**: Tuned agents update instantly for ALL users on the instance (Single Source of Truth).
+    - **Hybrid Roster**: Core agents are "Key-Locked" (cannot be deleted) but are fully "Tunable" (editable prompts/models).
+    - **Model Flexibility**: Added selector for `gemini-1.5-pro` vs `flash` to optimize cost/intelligence per agent.
+    - **Avatar Upload**: Implemented "Retro/Pixel Art" avatar upload for agents, storing in `avatars/crew/` bucket.
+    - **Security**: Fixed RLS policies to allow authenticated Commanders full CRUD access to `ai_crew` and storage.
+    - **Engineering Bay**: Replaced `AgentEditor` modal with a dedicated "Tri-Pane" workstation (`/hangar/ai/[key]`) for immersive agent design.
+    - **Personnel Director**: Implemented a "Meta-Agent" chat interface (`consultPersonnelDirector`) that uses `gemini-1.5-flash` to generate and update agent configs (System Prompt, Role, Model) via natural language.
+    - **Divisional Structure**: Introduced 7 Pillars (Discovery, Strategy, Substructure, Design, Planning, Construction, Integration) and enforced strict assignment via schema constraints and UI selectors.

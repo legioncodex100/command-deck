@@ -49,7 +49,33 @@ export async function inviteCivilian(email: string) {
         });
     }
 
-    return { success: true, message: `Invitation sent to ${email}` };
+    return { success: true };
+}
+
+export async function deleteUser(userId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile || profile.role !== 'COMMANDER') {
+        return { error: "Access Denied: Commanders Only" };
+    }
+
+    const adminClient = createAdminClient();
+
+    // Delete from Auth (cascades to profiles usually, but we should be sure)
+    const { error } = await adminClient.auth.admin.deleteUser(userId);
+
+    if (error) return { error: error.message };
+
+    return { success: true };
 }
 
 export const resendInvite = inviteCivilian;
