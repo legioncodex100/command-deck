@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Users, UserPlus, Shield, Mail, Search, Trash2, RefreshCw, Send } from "lucide-react";
-import { inviteCivilian, resendInvite } from "@/app/actions/admin";
+import { inviteCivilian, resendInvite, sendMagicLink, triggerPasswordReset } from "@/app/actions/admin";
+import { Sparkles, KeyRound } from "lucide-react";
 import { supabase } from "@/services/supabase";
 import { Profile } from "@/types/database";
 
@@ -221,6 +222,32 @@ export function HangarCivilians() {
                                             disabled={resendingEmail === profile.email}
                                         >
                                             <Send className={`h-4 w-4 ${resendingEmail === profile.email ? 'animate-pulse opacity-50' : ''}`} />
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                if (confirm(`Send MAGIC LINK to ${profile.email}?`)) {
+                                                    const res = await sendMagicLink(profile.email);
+                                                    if (res.error) alert("Error: " + res.error);
+                                                    else alert("Magic Link sent securely.");
+                                                }
+                                            }}
+                                            className="p-1.5 hover:bg-emerald-950/30 text-zinc-600 hover:text-emerald-400 rounded transition-colors"
+                                            title="Send Magic Link (Passwordless Login)"
+                                        >
+                                            <Sparkles className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                if (confirm(`Trigger PASSWORD RESET for ${profile.email}?`)) {
+                                                    const res = await triggerPasswordReset(profile.email);
+                                                    if (res.error) alert("Error: " + res.error);
+                                                    else alert("Password Reset email dispatched.");
+                                                }
+                                            }}
+                                            className="p-1.5 hover:bg-amber-950/30 text-zinc-600 hover:text-amber-400 rounded transition-colors"
+                                            title="Trigger Password Reset"
+                                        >
+                                            <KeyRound className="h-4 w-4" />
                                         </button>
                                         <button
                                             onClick={async () => {

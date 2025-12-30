@@ -78,4 +78,59 @@ export async function deleteUser(userId: string) {
     return { success: true };
 }
 
+
+export async function sendMagicLink(email: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile || profile.role !== 'COMMANDER') {
+        return { error: "Access Denied: Commanders Only" };
+    }
+
+    // Admin-triggered magic link (sends email to user)
+    const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+            emailRedirectTo: 'https://command-deck.dev/' // or Site URL
+        }
+    });
+
+    if (error) return { error: error.message };
+    return { success: true };
+}
+
+export async function triggerPasswordReset(email: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: "Unauthorized" };
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile || profile.role !== 'COMMANDER') {
+        return { error: "Access Denied: Commanders Only" };
+    }
+
+    // Admin-triggered password reset
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://command-deck.dev';
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/callback?next=/update-password`,
+    });
+
+    if (error) return { error: error.message };
+    return { success: true };
+}
+
 export const resendInvite = inviteCivilian;
