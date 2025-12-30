@@ -47,6 +47,8 @@ export interface Profile {
     id: string; // uuid
     email: string;
     display_name: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
     role: UserRole;
     created_at: string;
     updated_at: string;

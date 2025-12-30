@@ -14,6 +14,7 @@ export default function ProfilePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [displayName, setDisplayName] = useState("");
+    const [fullName, setFullName] = useState("");
 
     // State to hold both versions of the uploaded file
     const [originalFile, setOriginalFile] = useState<File | null>(null);
@@ -56,6 +57,7 @@ export default function ProfilePage() {
 
             if (profile) {
                 setDisplayName(profile.display_name || "");
+                setFullName(profile.full_name || "");
                 setRole(profile.role || "CIVILIAN");
 
                 const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -159,6 +161,8 @@ export default function ProfilePage() {
                     id: user.id,
                     email: user.email,
                     display_name: displayName,
+                    full_name: fullName,
+                    avatar_url: avatarUrl,
                     role: role as any,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'id' });
@@ -168,7 +172,8 @@ export default function ProfilePage() {
             // Sync with Auth Metadata
             await supabase.auth.updateUser({
                 data: {
-                    full_name: displayName,
+                    full_name: fullName,
+                    display_name: displayName,
                     avatar_url: avatarUrl
                 }
             });
@@ -288,6 +293,7 @@ export default function ProfilePage() {
 
 
                         <div>
+                            <div className="text-zinc-500 text-[10px] uppercase font-mono mb-0.5">Code Name</div>
                             <div className="text-white font-bold text-lg tracking-wide">{displayName || "UNKNOWN"}</div>
                             <div className="text-emerald-500 text-xs font-mono uppercase tracking-widest mt-1 flex items-center justify-center gap-1">
                                 <Shield className="h-3 w-3" />
@@ -316,17 +322,41 @@ export default function ProfilePage() {
                             </div>
                         )}
 
-                        {/* Name Input */}
+                        {/* Full Name Input */}
                         <div className="space-y-2">
                             <label className="text-xs font-mono uppercase tracking-wider text-zinc-500">
-                                Display Name
+                                Full Name (Identity)
                             </label>
+                            <input
+                                type="text"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                className="w-full bg-black border border-zinc-800 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition-colors font-mono"
+                                placeholder="JOHN DOE"
+                            />
+                        </div>
+
+                        {/* Codename Input */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <label className="text-xs font-mono uppercase tracking-wider text-zinc-500">
+                                    Code Name
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => import("@/utils/generators").then(m => setDisplayName(m.generateCodename()))}
+                                    className="text-[10px] text-emerald-600 hover:text-emerald-400 underline uppercase"
+                                >
+                                    Re-Roll
+                                </button>
+                            </div>
+
                             <input
                                 type="text"
                                 value={displayName}
                                 onChange={(e) => setDisplayName(e.target.value)}
-                                className="w-full bg-black border border-zinc-800 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition-colors font-mono"
-                                placeholder="ENTER_NAME"
+                                className="w-full bg-black border border-zinc-800 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500 transition-colors font-mono uppercase"
+                                placeholder="CODENAME"
                             />
                         </div>
 

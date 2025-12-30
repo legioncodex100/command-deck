@@ -144,6 +144,28 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         if (data) {
             setProjects((prev) => [data, ...prev]);
             setActiveProjectId(data.id);
+
+            // AUTO-ADMOTION: Check rank and upgrade to PILOT if CIVILIAN
+            try {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile && profile.role === 'CIVILIAN') {
+                    console.log("Promoting user to PILOT...");
+                    await supabase
+                        .from('profiles')
+                        .update({ role: 'PILOT' })
+                        .eq('id', user.id);
+
+                    // Refresh auth session to reflect new role if needed (though UI usually fetches from DB)
+                    await supabase.auth.refreshSession();
+                }
+            } catch (err) {
+                console.error("Error promoting user:", err);
+            }
         }
         return data;
     };

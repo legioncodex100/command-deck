@@ -47,3 +47,5 @@ export async function inviteCivilian(email: string) {
 
     return { success: true, message: `Invitation sent to ${email}` };
 }
+
+export const resendInvite = inviteCivilian;

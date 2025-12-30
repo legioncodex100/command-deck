@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/services/supabase";
 import { CommandDeckLogo } from "@/components/branding/CommandDeckLogo";
@@ -11,11 +11,19 @@ export default function SetupProfilePage() {
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const [fullName, setFullName] = useState("");
     const [displayName, setDisplayName] = useState("");
     const [file, setFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Auto-generate codename on mount
+    useEffect(() => {
+        import("@/utils/generators").then(mod => {
+            setDisplayName(mod.generateCodename());
+        });
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -44,36 +52,22 @@ export default function SetupProfilePage() {
                 .from('profiles')
                 .update({
                     display_name: displayName,
-                    // We assume 'avatar_url' column exists or needs to be added? 
-                    // Wait, standard schema usually has it. If not, we might need a migration.
-                    // Let's assume standard Supabase starter schema or similar.
-                    // If it fails, we'll see.
-                    // Actually, looking at types/database.ts line 46:
-                    // export interface Profile { ... role ... } 
-                    // It didn't explicitly show avatar_url in the earlier read.
-                    // Let's check if we can add it or if it's implicitly there. 
-                    // Safest is to try updating meta_data in auth too? No, profiles table is best.
-                    // I will attempt to add it to 'profiles' table.
-                    // Wait, I can't run migrations easily. 
-                    // I'll try to save it to User Metadata as fallback if profile update fails?
-                    // No, let's stick to the plan. I'll update the profile.
-                    // If the column is missing, the user will have to add it.
-                    // But for now, let's try to update 'display_name' which we know exists.
-                    // I'll assume avatar_url is in metadata for now if not in profiles.
+                    full_name: fullName,
+                    avatar_url: avatarUrl // Optimistically try to update
                 })
                 .eq('id', user.id);
 
-            // Also update Auth Metadata for immediate UI availability
+            // Also update Auth Metadata
             await supabase.auth.updateUser({
                 data: {
-                    full_name: displayName,
+                    full_name: fullName,
+                    display_name: displayName, // Store codename here too
                     avatar_url: avatarUrl
                 }
             });
 
             if (updateError) {
                 console.warn("Profile table update warning:", updateError);
-                // Proceed anyway if auth update worked
             }
 
             router.push("/");
@@ -138,21 +132,49 @@ export default function SetupProfilePage() {
                             />
                         </div>
 
-                        {/* Name Input */}
-                        <div className="space-y-2 group">
-                            <label className="block text-emerald-700 uppercase tracking-wider text-xs font-mono group-focus-within:text-emerald-400 transition-colors">
-                                &gt; codename / display name:
-                            </label>
-                            <div className="flex items-center gap-3 border-b border-emerald-800 py-2 group-focus-within:border-emerald-500 transition-colors">
-                                <User className="h-4 w-4 text-emerald-800" />
-                                <input
-                                    type="text"
-                                    value={displayName}
-                                    onChange={(e) => setDisplayName(e.target.value)}
-                                    className="w-full bg-transparent text-emerald-100 focus:outline-none font-mono placeholder-emerald-900"
-                                    placeholder="ENTER_NAME"
-                                    required
-                                />
+                        <div className="space-y-4">
+                            {/* Full Name Input */}
+                            <div className="space-y-2 group">
+                                <label className="block text-emerald-700 uppercase tracking-wider text-xs font-mono group-focus-within:text-emerald-400 transition-colors">
+                                    &gt; Full Name:
+                                </label>
+                                <div className="flex items-center gap-3 border-b border-emerald-800 py-2 group-focus-within:border-emerald-500 transition-colors">
+                                    <User className="h-4 w-4 text-emerald-800" />
+                                    <input
+                                        type="text"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        className="w-full bg-transparent text-emerald-100 focus:outline-none font-mono placeholder-emerald-900"
+                                        placeholder="JOHN DOE"
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Codename Input */}
+                            <div className="space-y-2 group">
+                                <label className="block text-emerald-700 uppercase tracking-wider text-xs font-mono group-focus-within:text-emerald-400 transition-colors flex justify-between">
+                                    <span>&gt; Assigned Codename:</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => import("@/utils/generators").then(m => setDisplayName(m.generateCodename()))}
+                                        className="text-[10px] text-emerald-600 hover:text-emerald-400 underline"
+                                    >
+                                        RE-ROLL
+                                    </button>
+                                </label>
+                                <div className="flex items-center gap-3 border-b border-emerald-800 py-2 group-focus-within:border-emerald-500 transition-colors">
+                                    <span className="text-emerald-500 font-bold">#</span>
+                                    <input
+                                        type="text"
+                                        value={displayName}
+                                        onChange={(e) => setDisplayName(e.target.value)}
+                                        className="w-full bg-transparent text-emerald-100 focus:outline-none font-mono placeholder-emerald-900 uppercase"
+                                        placeholder="CODENAME"
+                                        required
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -165,7 +187,7 @@ export default function SetupProfilePage() {
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                                 <>
-                                    <span>Initialize</span>
+                                    <span>Initialize Identity</span>
                                     <ChevronRight className="h-4 w-4" />
                                 </>
                             )}

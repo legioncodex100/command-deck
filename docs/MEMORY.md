@@ -1,78 +1,49 @@
-# MEMORY.md: Platform Build Status (Host)
+# MEMORY.md
 
-## 1. Purpose
-Tracks the build evolution of the Command Deck Platform itself.
+## Project: Command Deck
 
-## 2. Active Platform Context (Chronological)
-**Project**: Command Deck Orchestrator
+### Core Objective
+Build a "civilian-facing" interface (The Deck) for the Legion Grappling CRM, allowing non-admin users (Civilians/Operatives) to view their stats, manage their profile, and interact with the system.
 
-**Status**:
-*   **[A] Discovery**: Functional (v2.0)
-*   **[B] Strategy**: Functional (v2.0)
-*   **[C] Substructure**: Functional (v2.0)
-*   **[D] Design**: Functional (v2.0)
-*   **[E] Planning**: Functional (Sprint Logic Active)
-*   **[F] Construction**: Functional (Work Orders + Kanban)
-*   **[G] Integration**: **ACTIVE BUILD** (Virtual Pillar G Implementation)
+### Session: Persistent Profile & Matrix Filter (Current)
+- **Goal**: Implement persistent profile editing and a "Matrix" style avatar filter.
+- **Accomplished**:
+    - Created `src/app/(deck)/profile/page.tsx` for persistent profile management.
+    - Added "Identity Settings" to `Sidebar.tsx`, integrating avatar display in the footer.
+    - Implemented `src/utils/imageProcessing.ts` for client-side "Matrix" neural filter (Canvas API).
+    - Added "Remove Avatar" and "Toggle Filter" functionality.
+    - Refined Sidebar UI for proper alignment of Hangar icon and Avatar.
+- **Key Decisions**:
+    - **Client-Side Processing**: Used HTML5 Canvas for the image filter to ensure speed and privacy (no external AI).
+    - **Sidebar Integration**: Merged profile access into the sidebar footer for persistent visibility.
+    - **Supabase RLS**: Enforced strict RLS policies for `profiles` table and `avatars` bucket.
+- **Next Steps**:
+    - Implement "Resend Invite" functionality for admins (Completed).
+    - Verify full production deployment.
 
-## 3. Maintenance Log
-**[2025-12-29, 23:05] Feature Complete: Civilian Onboarding**
-*   **Action**: Implemented `src/app/setup-profile` for Name/Avatar collection.
-*   **Action**: Added `src/services/storage.ts` for handling avatar uploads.
-*   **Verification**: Validated full Invite -> Password -> Profile -> Dashboard flow.
-*   **Infrastructure**: Added `SUPABASE_SERVICE_ROLE_KEY` to environment.
+### Session: Identity Protocol & Progression
+- **Goal**: Implement dual identity (Legal/Code Name), uniqueness, and automated rank progression.
+- **Accomplished**:
+    - **Dual Identity**: Separated `full_name` (Legal) and `display_name` (Code Name) in schema and UI.
+    - **Generators**: Added `generateCodename()` utility for thematic random names (e.g., "NEON-WOLF").
+    - **Progression**: Implemented auto-promotion from `CIVILIAN` to `PILOT` upon first project creation (`useProject.tsx`).
+    - **Security**: Applied `UNIQUE` constraint to `display_name` via migration.
+    - **Refinement**: Updated Profile UI with "Code Name" labels and generation tools.
+- **Key Decisions**:
+    - **Code Name Uniqueness**: Enforced via database constraint to prevent collisions.
+    - **Auto-Promotion**: Tied to project creation as the "First Flight" milestone.
 
-**[2025-12-29, 22:15] Post-Pivot Verification & AI Integration**
-*   **Action**: Verified Civilian Onboarding (Created Update Password Page).
-*   **Action**: Connected EngineerChat to Gemini Backend (Server Route).
-*   **Action**: Finalized Maintenance Bay Metrics (Live Simulation).
-*   **Action**: Refined Email Templates (Ship + Matrix Theme).
+### Context
+- **Active User**: `mohammed@legiongrappling.com` (Commander Role).
+- **Civilian Role**: Standard users are "Operatives" or "Civilians".
 
-**[2025-12-29, 21:40] UI Polish & Login Redesign**
-*   **Action**: Complete visual overhaul of `/login` page for "Matrix Terminal" aesthetic.
-*   **Animations**:
-    *   **Logo**: Implemented "Pixel Rez" materialization effect (CSS steps + blur).
-    *   **Terminal**: Added Glitch -> Boot -> Infinite Loop phases.
-    *   **Transition**: Added "SYSTEM_INITIALIZED" full-screen overlay during auth.
-*   **Mobile Optimization**:
-    *   Relocated terminal to inline position below submit button.
-    *   Implemented "Command Line" mode (single-line typing with caret) for mobile.
-    *   Centered layout flow (Logo -> Header -> Form).
-*   **Styling**:
-    *   **Typography**: Reverted to System Monospace, reduced scaling by 25%.
-    *   **Password**: implemented custom `*` asterisk masking overlay.
-
-**[2025-12-29, 17:46] Session Checkout: SaaS Pivot Complete**
-*   **Git Commit**: `feat: implement civilian access layer and virtual pillar g`
-*   **Summary**: The platform successfully transitioned to a Multi-Tenant SaaS architecture.
-    *   **Civilian Registry**: Live.
-    *   **Virtual File System**: Active (DB+S3).
-    *   **Documentation**: fully aligned.
-
-**[2025-12-29, 17:40] Strategic Pivot: User Management & SaaS Architecture**
-*   **Action**: Implemented **Civilian Access Layer** (Profiles, Invitations, strict RLS).
-*   **Action**: Built **Civilian Registry UI** (`/hangar/civilians`) allowing Commanders to invite non-admin users.
-*   **Action**: Developed **Virtual Pillar G** (SaaS Data Architecture).
-    *   **Host**: Syncs to Physical Disk + DB.
-    *   **Civilian**: Syncs to DB + S3 Only (Zero filesystem access).
-*   **Action**: Refined **Hangar UI** (Layout fix, EngineerChat Enabled in Evolution Mode).
-*   **Documentation**: Updated `MASTER_SPECIFICATION.md` and `ARCHITECTURE.md` to reflect the new Two-Tier Tenant Hierarchy.
-
-**[2025-12-29, 11:45] System Maintenance (Workflow)**
-*   **Action**: Created `.agent/workflows/update_memory.md` to standardize status logging.
-*   **Action**: Initialized implementation plan for **Developer Mode** (Context, Overlay, Panel).
-
-**[2025-12-29, 11:38] Documentation Update (v5.8)**
-*   **Action**: Consolidated fragmented specifications (Facade, Strategy, Context) into `MASTER_SPECIFICATION.md`.
-*   **Action**: Archived redundant mini-specs to enforce Single Source of Truth.
-*   **Status**: Documentation is now fully aligned with v6.0 Rolling Synthesis protocols.
-
-**[2025-12-29] System Upgrade (v5.7)**
-*   **Action**: Implemented **Rolling Synthesis Protocol** (v6.0) across all Relay artifacts.
-*   **Action**: Initialized **Developer Mode** specification (Host Debugger).
-*   **Action**: Launched **Pillar G (Integration Bridge)** basics.
-
-**Next Steps**:
-1.  Verify Civilian Onboarding Flow (End-to-End).
-2.  Connect EngineerChat to Real AI backend.
-3.  Finalize "Maintenance Bay" real-time metrics.
+### Session: Civilian Onboarding Flow (Previous)
+- **Goal**: Finalize invite-to-access flow for civilians.
+- **Accomplished**:
+    - Verified `inviteCivilian` server action (fixed RLS/Service Key).
+    - Created `src/app/setup-profile/page.tsx` for initial profile creation.
+    - Implemented `src/services/storage.ts` for avatar uploads.
+    - Connected `update-password` -> `setup-profile` -> `dashboard`.
+- **Key Decisions**:
+    - **Supabase Service Key**: Required for admin invite actions (`inviteCivilian`).
+    - **Profile Table**: Utilizing `public.profiles` linked to `auth.users` via `id`.
