@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut, Rocket, ChevronDown, Plus, Folder, Check, GitBranch, Layout, Bot, Smartphone, Users } from 'lucide-react';
+import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut, Rocket, ChevronDown, Plus, Folder, Check, GitBranch, Layout, Bot, Smartphone, Users, Cpu, UserPlus, Shield } from 'lucide-react';
 import { CommandDeckLogo } from '@/components/branding/CommandDeckLogo';
 import { useAuth } from "@/hooks/useAuth";
 import { useProject } from "@/hooks/useProject";
@@ -73,6 +73,14 @@ const PILLAR_CONFIG: Record<string, { left: { icon: any, label: string }, right:
         left: { icon: Activity, label: 'Tests' },
         right: { icon: FileText, label: 'Logs' }
     },
+    '/hangar/ai/': {
+        left: { icon: Eye, label: 'Visuals' },
+        right: { icon: Cpu, label: 'Core' }
+    },
+    '/hangar/civilians': {
+        left: { icon: UserPlus, label: 'Invite' },
+        right: { icon: Shield, label: 'Stats' }
+    },
     '/hangar/flight': {
         left: { icon: Layout, label: 'Backlog' },
         right: { icon: ClipboardCheck, label: 'Log' }
@@ -88,6 +96,28 @@ export function MobileNavbar({ mode = 'deck' }: MobileNavbarProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Swipe handlers
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientY);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientY);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || (!touchEnd && touchEnd !== 0)) return;
+        const distance = touchStart - touchEnd;
+        const isDownSwipe = distance < -50;
+        if (isDownSwipe) {
+            setIsMenuOpen(false);
+        }
+    };
 
     // Auth & Profile Logic
     const { signOut, user } = useAuth();
@@ -126,7 +156,10 @@ export function MobileNavbar({ mode = 'deck' }: MobileNavbarProps) {
     }, [user]);
 
     // Get current config based on path prefix
-    const activePillarConfig = Object.entries(PILLAR_CONFIG).find(([path]) => pathname?.startsWith(path))?.[1];
+    // Get current config based on path prefix - prioritize longest match
+    const activePillarConfig = Object.entries(PILLAR_CONFIG)
+        .sort((a, b) => b[0].length - a[0].length)
+        .find(([path]) => pathname?.startsWith(path))?.[1];
     const isPillarPage = !!activePillarConfig;
 
     const toggleRoadmap = () => {
@@ -343,7 +376,7 @@ export function MobileNavbar({ mode = 'deck' }: MobileNavbarProps) {
                                     onClick={() => setIsMenuOpen(false)}
                                     className={cn(
                                         "flex flex-col items-center justify-center gap-2 p-2 rounded-xl border transition-all aspect-square",
-                                        pathname?.startsWith(item.href)
+                                        (item.href === '/hangar' ? pathname === item.href : pathname?.startsWith(item.href))
                                             ? "bg-emerald-950/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)]"
                                             : "bg-zinc-900/40 border-zinc-800 text-zinc-500 hover:bg-zinc-900 hover:border-zinc-700 hover:text-zinc-300"
                                     )}
@@ -370,14 +403,15 @@ export function MobileNavbar({ mode = 'deck' }: MobileNavbarProps) {
                                         href={item.href}
                                         onClick={() => setIsMenuOpen(false)}
                                         className={cn(
-                                            "flex items-center gap-2.5 p-3 rounded-xl border transition-all",
+                                            "flex flex-col items-center justify-center gap-2 p-2 rounded-xl border transition-all aspect-square",
                                             pathname?.startsWith(item.href)
-                                                ? "bg-emerald-950/10 border-emerald-500/30 text-emerald-400"
-                                                : "bg-zinc-900/20 border-zinc-800 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
+                                                ? "bg-emerald-950/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)]"
+                                                : "bg-zinc-900/40 border-zinc-800 text-zinc-500 hover:bg-zinc-900 hover:border-zinc-700 hover:text-zinc-300"
                                         )}
                                     >
-                                        <item.icon className="h-4 w-4" />
-                                        <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
+                                        <span className="text-xs font-bold text-current mb-0.5 opacity-50">{item.letter}</span>
+                                        <item.icon className="h-6 w-6 mb-1" />
+                                        <span className="text-[9px] font-medium uppercase tracking-wider opacity-80 text-center leading-tight">{item.label}</span>
                                     </Link>
                                 ))}
 

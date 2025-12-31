@@ -43,7 +43,7 @@ export function HangarSidebar() {
     }, []);
 
     return (
-        <aside className="fixed left-0 top-[56px] z-40 h-[calc(100vh-56px)] w-16 hover:w-64 transition-all duration-300 bg-[#050505] border-r border-[#1a1a1a] flex flex-col font-mono group overflow-visible">
+        <aside className="fixed left-0 top-0 z-[200] h-screen w-16 hover:w-64 transition-all duration-300 bg-[#050505] border-r border-[#1a1a1a] flex flex-col font-mono group overflow-visible">
             {/* Navigation */}
             <nav className="flex-1 p-2 flex flex-col gap-1 mt-2">
                 <div className="px-2 py-2 text-[10px] uppercase font-bold text-zinc-700 tracking-widest hidden group-hover:block animate-in fade-in slide-in-from-left-2 whitespace-nowrap">
@@ -88,7 +88,7 @@ export function HangarSidebar() {
                 </div>
 
                 <Link
-                    href="/dashboard"
+                    href="/"
                     className="flex items-center gap-3 px-3 py-2 rounded-md text-xs text-zinc-500 hover:text-red-400 hover:bg-red-950/10 transition-all group/exit"
                 >
                     <LogOut className="h-4 w-4 group-hover/exit:rotate-180 transition-transform shrink-0" />
