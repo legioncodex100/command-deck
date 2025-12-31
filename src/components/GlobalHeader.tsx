@@ -29,7 +29,7 @@ export function GlobalHeader() {
     const formattedPage = currentPage.charAt(0).toUpperCase() + currentPage.slice(1);
 
     return (
-        <header className="flex flex-col gap-1 border-b border-zinc-800/50 pb-4 shrink-0 px-6 lg:px-8 pt-6">
+        <header className="flex flex-col gap-1 border-b border-zinc-800/50 pb-4 shrink-0 px-6 lg:px-8 pt-3 lg:pt-6">
             <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider mb-1">
                 Command Deck <span className="text-zinc-700">/</span> {formattedPage}
             </div>
