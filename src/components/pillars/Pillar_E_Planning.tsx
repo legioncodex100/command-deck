@@ -11,7 +11,7 @@ import { saveBacklogSession, loadBacklogSession } from '@/services/planning_pers
 import { decomposeToBacklog, assessRisks, createRoadmap, evaluateHandover } from '@/services/planning';
 import { generateRelayArtifact } from '@/services/relay';
 import { checkStaleState } from '@/services/ripple';
-import StandardPillarLayout from '../StandardPillarLayout';
+import StandardPillarLayout from './StandardPillarLayout';
 
 export default function Pillar_E_Planning() {
     const { activeProjectId, documents, saveDocument } = useProject();
