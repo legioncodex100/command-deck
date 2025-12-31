@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut, Rocket } from 'lucide-react';
+import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut, Rocket, ChevronDown, Plus, Folder, Check } from 'lucide-react';
 import { CommandDeckLogo } from '@/components/branding/CommandDeckLogo';
 import { useAuth } from "@/hooks/useAuth";
+import { useProject } from "@/hooks/useProject";
 import { supabase } from "@/services/supabase";
 import {
     Search, CenterCircle, DataBase, ColorPalette, DataBlob,
@@ -73,7 +74,23 @@ export function MobileNavbar() {
 
     // Auth & Profile Logic
     const { signOut, user } = useAuth();
+    const { projects, activeProject, createProject, switchProject, isLoading } = useProject();
     const [profile, setProfile] = useState<{ display_name: string, full_name: string, role: string, avatar_url: string | null } | null>(null);
+
+    // Project Switcher State
+    const [isProjectExpanded, setIsProjectExpanded] = useState(false);
+    const [isCreatingProject, setIsCreatingProject] = useState(false);
+    const [newProjectName, setNewProjectName] = useState("");
+
+    const handleCreateProject = async () => {
+        if (!newProjectName.trim()) return;
+        await createProject(newProjectName.trim());
+        setNewProjectName("");
+        setIsCreatingProject(false);
+        setIsProjectExpanded(false);
+        setIsMenuOpen(false);
+        router.push('/dashboard');
+    };
 
     useEffect(() => {
         if (user) {
@@ -194,6 +211,87 @@ export function MobileNavbar() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-8 max-w-5xl mx-auto w-full">
+
+                    {/* Project Switcher */}
+                    <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden">
+                        <button
+                            onClick={() => setIsProjectExpanded(!isProjectExpanded)}
+                            className="w-full flex items-center justify-between p-3 active:bg-zinc-800/50 transition-colors"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded bg-zinc-900 text-emerald-500 flex items-center justify-center shrink-0 font-bold border border-zinc-800">
+                                    {isLoading ? "..." : (activeProject?.name.substring(0, 1) || "+")}
+                                </div>
+                                <div className="flex flex-col items-start">
+                                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Active Project</span>
+                                    <span className="text-sm font-bold text-zinc-200">{activeProject?.name || "Select Project"}</span>
+                                </div>
+                            </div>
+                            <ChevronDown className={cn("h-4 w-4 text-zinc-500 transition-transform duration-300", isProjectExpanded && "rotate-180")} />
+                        </button>
+
+                        {/* Expandable Project List */}
+                        <div className={cn(
+                            "grid transition-all duration-300 ease-in-out bg-zinc-950/50",
+                            isProjectExpanded ? "grid-rows-[1fr] border-t border-zinc-800" : "grid-rows-[0fr]"
+                        )}>
+                            <div className="overflow-hidden">
+                                <div className="p-2 space-y-1">
+                                    {projects.map(p => (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => { switchProject(p.id); setIsProjectExpanded(false); setIsMenuOpen(false); router.push('/dashboard'); }}
+                                            className={cn(
+                                                "w-full flex items-center justify-between p-2 rounded-lg text-sm transition-colors",
+                                                activeProject?.id === p.id
+                                                    ? "bg-emerald-950/20 text-emerald-400 border border-emerald-500/20"
+                                                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Folder className="h-4 w-4" />
+                                                <span>{p.name}</span>
+                                            </div>
+                                            {activeProject?.id === p.id && <Check className="h-3 w-3" />}
+                                        </button>
+                                    ))}
+
+                                    <div className="h-px bg-zinc-800 my-2" />
+
+                                    {isCreatingProject ? (
+                                        <div className="flex items-center gap-2 p-1 animate-in fade-in slide-in-from-left-2">
+                                            <input
+                                                autoFocus
+                                                type="text"
+                                                placeholder="New Project Name..."
+                                                className="flex-1 bg-zinc-900 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
+                                                value={newProjectName}
+                                                onChange={(e) => setNewProjectName(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') handleCreateProject();
+                                                    if (e.key === 'Escape') setIsCreatingProject(false);
+                                                }}
+                                            />
+                                            <button
+                                                onClick={handleCreateProject}
+                                                className="p-2 bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 border border-emerald-500/20"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setIsCreatingProject(true)}
+                                            className="w-full flex items-center gap-2 p-2 rounded-lg text-sm text-zinc-400 hover:text-emerald-400 hover:bg-zinc-900 transition-colors"
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            <span>Create New Project</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Primary Pillars Grid */}
                     <div>
