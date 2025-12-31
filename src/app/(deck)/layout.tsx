@@ -29,7 +29,7 @@ export default async function DeckLayout({
                 </div>
                 <div className="flex-1 flex flex-col min-w-0">
                     <MobileNavbar />
-                    <main className="flex-1 bg-black p-4 md:p-6 overflow-hidden flex flex-col mb-24 lg:mb-0">
+                    <main className="flex-1 bg-black px-4 pb-4 pt-16 md:p-6 overflow-hidden flex flex-col mb-24 lg:mb-0">
                         <div className="w-full h-full flex flex-col bg-[#0a0a0a] rounded-xl border border-zinc-800 shadow-2xl overflow-hidden relative">
                             <GlobalHeader />
                             <div className="flex-1 overflow-hidden min-h-0 relative">
