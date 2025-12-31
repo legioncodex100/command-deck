@@ -97,16 +97,7 @@ export function HangarSimulator() {
                     </button>
 
                     {/* Keyboard Toggle */}
-                    <button
-                        onClick={() => setShowKeyboard(prev => !prev)}
-                        className={cn(
-                            "p-2 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors flex items-center gap-2",
-                            showKeyboard && "bg-zinc-800 text-emerald-400"
-                        )}
-                        title="Toggle Soft Keyboard"
-                    >
-                        <Keyboard className="h-4 w-4" />
-                    </button>
+
 
                     {/* Orientation */}
                     <button
