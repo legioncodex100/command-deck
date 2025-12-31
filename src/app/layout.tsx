@@ -49,7 +49,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
       </head>
       <body
-        className="antialiased min-h-screen bg-background text-foreground"
+        className="antialiased min-h-screen bg-background text-foreground font-mono"
       >
         <Providers>
           {children}

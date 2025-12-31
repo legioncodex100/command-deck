@@ -36,7 +36,7 @@ export function GlobalHeader() {
             </div>
             <div className="flex items-start justify-between">
                 <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight text-white">
+                    <h1 className="text-2xl font-bold font-mono tracking-tight text-white">
                         {formattedPage}
                     </h1>
                     <p className="w-fit text-emerald-500 font-mono text-xs flex items-center gap-2 bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/20">
