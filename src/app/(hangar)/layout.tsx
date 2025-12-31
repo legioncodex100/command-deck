@@ -73,7 +73,7 @@ export default function HangarLayout({
             </div>
 
             {/* Mobile Navigation */}
-            <MobileNavbar />
+            <MobileNavbar mode="hangar" />
 
             {/* Main Content Area (Universal Style) */}
             <main className="flex-1 lg:ml-16 h-[calc(100dvh-5rem)] lg:h-screen w-full lg:w-[calc(100vw-4rem)] bg-black md:p-6 overflow-hidden flex flex-col mb-20 lg:mb-0">

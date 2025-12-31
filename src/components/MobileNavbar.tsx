@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut, Rocket, ChevronDown, Plus, Folder, Check } from 'lucide-react';
+import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut, Rocket, ChevronDown, Plus, Folder, Check, GitBranch, Layout, Bot, Smartphone, Users } from 'lucide-react';
 import { CommandDeckLogo } from '@/components/branding/CommandDeckLogo';
 import { useAuth } from "@/hooks/useAuth";
 import { useProject } from "@/hooks/useProject";
@@ -32,6 +32,15 @@ const PILLAR_ITEMS = [
     { label: 'Planning', href: '/planning', icon: DataBlob, letter: 'E' },
     { label: 'Construction', href: '/construction', icon: Construction, letter: 'F' },
     { label: 'Integration', href: '/integration', icon: Integration, letter: 'G' },
+];
+
+const HANGAR_ITEMS = [
+    { label: 'Evolution Lab', href: '/hangar', icon: GitBranch, letter: 'E' },
+    { label: 'Flight Deck', href: '/hangar/flight', icon: Layout, letter: 'F' },
+    { label: 'Synthetic Div', href: '/hangar/ai', icon: Bot, letter: 'S' },
+    { label: 'Device Sim', href: '/hangar/simulator', icon: Smartphone, letter: 'D' },
+    { label: 'Civilian Registry', href: '/hangar/civilians', icon: Users, letter: 'C' },
+    { label: 'Maintenance', href: '/hangar/maintenance', icon: Activity, letter: 'M' },
 ];
 
 // Context-Aware Config (The Chameleon Bar)
@@ -63,10 +72,18 @@ const PILLAR_CONFIG: Record<string, { left: { icon: any, label: string }, right:
     '/integration': {
         left: { icon: Activity, label: 'Tests' },
         right: { icon: FileText, label: 'Logs' }
+    },
+    '/hangar/flight': {
+        left: { icon: Layout, label: 'Backlog' },
+        right: { icon: ClipboardCheck, label: 'Log' }
     }
 };
 
-export function MobileNavbar() {
+interface MobileNavbarProps {
+    mode?: 'deck' | 'hangar';
+}
+
+export function MobileNavbar({ mode = 'deck' }: MobileNavbarProps) {
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -212,7 +229,8 @@ export function MobileNavbar() {
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-8 max-w-5xl mx-auto w-full">
 
-                    {/* Project Switcher */}
+                    {/* Project Switcher (Hidden in Hangar Mode for simplicity, or keep? keeping for now) */}
+                    {/* Actually, let's keep it. Admins might want to switch context even in Hangar. */}
                     <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden">
                         <button
                             onClick={() => setIsProjectExpanded(!isProjectExpanded)}
@@ -293,23 +311,32 @@ export function MobileNavbar() {
                         </div>
                     </div>
 
-                    {/* Primary Pillars Grid */}
+                    {/* Navigation Links (Mode Switched) */}
                     <div>
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Mission Pillars</span>
+                            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                                {mode === 'hangar' ? 'Hangar Protocols' : 'Mission Pillars'}
+                            </span>
                         </div>
-                        {/* Dashboard Home - Moved to Top */}
+
+                        {/* Top Link (Dashboard or Exit Hangar) */}
                         <Link
                             href="/dashboard"
                             onClick={() => setIsMenuOpen(false)}
-                            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-bold tracking-wider text-xs uppercase mb-3"
+                            className={cn(
+                                "w-full flex items-center justify-center gap-2 p-3 rounded-xl border transition-all font-bold tracking-wider text-xs uppercase mb-3",
+                                mode === 'hangar'
+                                    ? "bg-red-950/10 border-red-900/30 text-red-500 hover:bg-red-950/20"
+                                    : "bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900"
+                            )}
                         >
-                            <Home className="h-4 w-4" />
-                            <span>Mission Hub</span>
+                            {mode === 'hangar' ? <LogOut className="h-4 w-4" /> : <Home className="h-4 w-4" />}
+                            <span>{mode === 'hangar' ? 'Exit to Deck' : 'Mission Hub'}</span>
                         </Link>
 
+                        {/* Grid */}
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                            {PILLAR_ITEMS.map((item) => (
+                            {(mode === 'hangar' ? HANGAR_ITEMS : PILLAR_ITEMS).map((item) => (
                                 <Link
                                     key={item.href}
                                     href={item.href}
@@ -321,50 +348,53 @@ export function MobileNavbar() {
                                             : "bg-zinc-900/40 border-zinc-800 text-zinc-500 hover:bg-zinc-900 hover:border-zinc-700 hover:text-zinc-300"
                                     )}
                                 >
-                                    <span className="text-xs font-bold text-current mb-0.5">{item.letter}</span>
+                                    <span className="text-xs font-bold text-current mb-0.5 opacity-50">{item.letter}</span>
                                     <item.icon className="h-6 w-6 mb-1" />
-                                    <span className="text-[9px] font-medium uppercase tracking-wider opacity-80">{item.label}</span>
+                                    <span className="text-[9px] font-medium uppercase tracking-wider opacity-80 text-center leading-tight">{item.label}</span>
                                 </Link>
                             ))}
                         </div>
                     </div>
 
-                    {/* Ship Systems (Horizontal Scroll) */}
-                    <div>
-                        <div className="flex items-center justify-between mb-4">
-                            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Ship Systems</span>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                            {SYSTEM_ITEMS.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    onClick={() => setIsMenuOpen(false)}
-                                    className={cn(
-                                        "flex items-center gap-2.5 p-3 rounded-xl border transition-all",
-                                        pathname?.startsWith(item.href)
-                                            ? "bg-emerald-950/10 border-emerald-500/30 text-emerald-400"
-                                            : "bg-zinc-900/20 border-zinc-800 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
-                                    )}
-                                >
-                                    <item.icon className="h-4 w-4" />
-                                    <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
-                                </Link>
-                            ))}
+                    {/* Ship Systems (Show only in Deck mode, or specific Hangar logic?) */}
+                    {/* Let's show Ship Systems in Deck mode only for now, to keep Hangar clean or add specific ones later */}
+                    {mode === 'deck' && (
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Ship Systems</span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                {SYSTEM_ITEMS.map((item) => (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className={cn(
+                                            "flex items-center gap-2.5 p-3 rounded-xl border transition-all",
+                                            pathname?.startsWith(item.href)
+                                                ? "bg-emerald-950/10 border-emerald-500/30 text-emerald-400"
+                                                : "bg-zinc-900/20 border-zinc-800 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
+                                        )}
+                                    >
+                                        <item.icon className="h-4 w-4" />
+                                        <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
+                                    </Link>
+                                ))}
 
-                            {/* Admin Hangar Link */}
-                            {(user?.email === 'mohammed@legiongrappling.com' || profile?.role === 'ADMIN') && (
-                                <Link
-                                    href="/hangar"
-                                    onClick={() => setIsMenuOpen(false)}
-                                    className="col-span-full flex items-center justify-center gap-2 p-3 rounded-xl border border-indigo-900/30 bg-indigo-950/10 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/20 transition-all font-bold tracking-wider text-xs uppercase"
-                                >
-                                    <Rocket className="h-4 w-4" />
-                                    <span>Hangar Protocol</span>
-                                </Link>
-                            )}
+                                {/* Admin Hangar Link */}
+                                {(user?.email === 'mohammed@legiongrappling.com' || profile?.role === 'ADMIN') && (
+                                    <Link
+                                        href="/hangar"
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="col-span-full flex items-center justify-center gap-2 p-3 rounded-xl border border-indigo-900/30 bg-indigo-950/10 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/20 transition-all font-bold tracking-wider text-xs uppercase"
+                                    >
+                                        <Rocket className="h-4 w-4" />
+                                        <span>Hangar Protocol</span>
+                                    </Link>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* User & Settings */}
                     <div>
@@ -394,7 +424,7 @@ export function MobileNavbar() {
                                     </div>
                                     <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{profile?.role || 'Crew Member'}</span>
 
-                                    {/* Codename Badge if Display Name exists AND Full Name dominates, otherwise display name is the main one */}
+                                    {/* Codename Badge */}
                                     {profile?.display_name && profile?.display_name !== profile?.full_name && (
                                         <span className="text-[9px] font-mono text-emerald-500 uppercase tracking-wider mt-0.5">
                                             {profile.full_name}
@@ -431,3 +461,4 @@ export function MobileNavbar() {
         </>
     );
 }
+
