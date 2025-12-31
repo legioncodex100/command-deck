@@ -1,8 +1,8 @@
-
-import { Bot, Send, Terminal, User } from "lucide-react";
+import { Bot, Send, Terminal, User, Trash2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { cn } from "@/lib/utils";
 import React, { useRef, useEffect, useState } from "react";
+import { Task } from "@/types/planning";
 
 interface Message {
     role: 'user' | 'model';
@@ -14,9 +14,12 @@ interface EngineerChatProps {
     onSendMessage: (text: string) => void;
     enabled: boolean;
     bottomRef?: React.RefObject<HTMLDivElement>;
+    className?: string; // StandardPillarLayout prop
+    activeTask?: Task;
+    onClearChat?: () => void;
 }
 
-export function EngineerChat({ messages, onSendMessage, enabled, bottomRef }: EngineerChatProps) {
+export function EngineerChat({ messages, onSendMessage, enabled, bottomRef, className, activeTask, onClearChat }: EngineerChatProps) {
     const [input, setInput] = useState("");
     const internalBottomRef = useRef<HTMLDivElement>(null);
     // Use external ref if provided, otherwise internal
@@ -37,8 +40,33 @@ export function EngineerChat({ messages, onSendMessage, enabled, bottomRef }: En
     }, [messages, refToUse]);
 
     return (
-        <div className="w-full flex flex-col bg-[#080808] shrink-0 border-l border-[#27272a] min-w-0 h-full">
-
+        <div className={cn("w-full flex flex-col bg-[#080808] shrink-0 min-w-0 h-full", className)}>
+            {/* Header */}
+            <div className="shrink-0 h-10 border-b border-[#27272a] flex items-center px-3 justify-between bg-zinc-950/50">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                        Engineer Uplink
+                    </span>
+                    {activeTask && (
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-900/30 text-indigo-400 text-[10px] font-mono border border-indigo-500/30 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                            {activeTask.title}
+                        </span>
+                    )}
+                    {!activeTask && (
+                        <span className="text-[10px] text-zinc-600 italic">Select a task from queue to begin</span>
+                    )}
+                </div>
+                {activeTask && onClearChat && (
+                    <button
+                        onClick={onClearChat}
+                        className="p-1 hover:bg-zinc-800 rounded text-zinc-600 hover:text-red-400 transition-colors"
+                        title="Clear Chat"
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                )}
+            </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-zinc-800">
                 {messages.map((msg, i) => (

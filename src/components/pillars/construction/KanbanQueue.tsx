@@ -1,6 +1,5 @@
-
 import { Task } from "@/types/planning";
-import { CheckCircle, PlayCircle, CheckCheck } from "lucide-react";
+import { CheckCircle, PlayCircle, CheckCheck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface KanbanQueueProps {
@@ -11,6 +10,8 @@ interface KanbanQueueProps {
     onCompleteSprint: () => void;
     onCompletePhase: () => void;
     isPhaseComplete?: boolean;
+    className?: string; // StandardPillarLayout prop
+    onClose?: () => void; // StandardPillarLayout prop
 }
 
 export function KanbanQueue({
@@ -20,13 +21,21 @@ export function KanbanQueue({
     onStartTask,
     onCompleteSprint,
     onCompletePhase,
-    isPhaseComplete = false
+    isPhaseComplete = false,
+    className,
+    onClose
 }: KanbanQueueProps) {
     return (
-        <div className="col-span-3 border-r border-[#27272a] flex flex-col bg-[#050505] overflow-hidden h-full">
+        <div className={cn("col-span-3 border-r border-[#27272a] flex flex-col bg-[#050505] overflow-hidden h-full", className)}>
             <div className="p-3 border-b border-[#27272a] bg-zinc-950 font-bold text-xs text-zinc-400 uppercase tracking-widest flex items-center justify-between">
                 <span>Sprint Queue</span>
-                <span className="bg-zinc-900 px-1.5 rounded">{todoTasks.length}</span>
+                <div className="flex items-center gap-2">
+                    <span className="bg-zinc-900 px-1.5 rounded">{todoTasks.length}</span>
+                    {/* Mobile Close Button */}
+                    <button onClick={onClose} className="lg:hidden p-1 text-zinc-500 hover:text-white">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-zinc-800">

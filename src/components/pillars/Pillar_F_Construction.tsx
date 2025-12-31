@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Trash2 } from 'lucide-react';
 import { useSprint } from '@/hooks/useSprint';
 import { useProject } from '@/hooks/useProject';
 import { KanbanQueue } from './construction/KanbanQueue';
@@ -17,7 +16,7 @@ import {
 } from '@/services/construction';
 import { generateRelayArtifact } from '@/services/relay';
 import { Task } from '@/types/planning';
-import { supabase } from '@/services/supabase'; // KEEPING ONLY FOR RELAY UPSERT (Unless I refactor relay too. Relay generation service is fine, but saving it? Wait, relay service creates artifact content. Saving it needs supabase or useProject. saveDocument from useProject is better.)
+import StandardPillarLayout from './StandardPillarLayout';
 
 export default function Pillar_F_Construction() {
     const { activeProjectId, documents, saveDocument } = useProject(); // Added saveDocument to useProject destructuring if available? useProject doesn't expose it usually? Wait, useProject exposes saveDocument? Checking Pillar A. Yes it does.
@@ -157,79 +156,42 @@ export default function Pillar_F_Construction() {
     };
 
     return (
-        <div className="h-full grid grid-cols-12 bg-black font-mono">
-            <KanbanQueue
-                todoTasks={todoTasks}
-                doneTasks={doneTasks}
-                activeTask={activeTask}
-                onStartTask={handleStartTask}
-                onCompleteSprint={completeSprint}
-                onCompletePhase={handleCompletePhase}
-                isPhaseComplete={relayGenerated}
-            />
-
-            <div className="col-span-9 flex flex-col h-full bg-zinc-950 relative min-h-0">
-                {/* Workspace Header */}
-                <div className="shrink-0 h-10 border-b border-[#27272a] grid grid-cols-12 bg-black/40">
-                    <div className="col-span-8 border-r border-[#27272a] flex items-center px-4 justify-between">
-                        <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                {/* Using simple text or icon if available in scope. Terminal is not imported here yet, so using text or existing imports. */}
-                                Engineer Uplink
-                            </span>
-                            {activeTask && (
-                                <span className="px-2 py-0.5 rounded-full bg-indigo-900/30 text-indigo-400 text-[10px] font-mono border border-indigo-500/30 flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                                    {activeTask.title}
-                                </span>
-                            )}
-                            {!activeTask && (
-                                <span className="text-[10px] text-zinc-600 italic">Select a task from queue to begin</span>
-                            )}
-                        </div>
-                        {activeTask && (
-                            <button
-                                onClick={() => {
-                                    if (confirm("Clear chat history for this task?")) {
-                                        setMessages([]);
-                                        setAllChats(prev => ({ ...prev, [activeTask.id]: [] }));
-                                    }
-                                }}
-                                className="p-1 hover:bg-zinc-800 rounded text-zinc-600 hover:text-red-400 transition-colors"
-                                title="Clear Chat"
-                            >
-                                <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                        )}
-                    </div>
-                    <div className="col-span-4 flex items-center px-4 justify-between">
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Work Order</span>
-                        {relayGenerated && <span className="text-[10px] text-emerald-500 font-bold uppercase">Phase Complete</span>}
-                    </div>
-                </div>
-
-                {/* Workspace Grid */}
-                <div className="flex-1 grid grid-cols-12 gap-0 overflow-hidden">
-                    {/* Center: Engineer Chat (66%) */}
-                    <div className="col-span-8 h-full border-r border-[#27272a] relative overflow-hidden">
-                        <EngineerChat
-                            messages={messages}
-                            onSendMessage={handleSendMessage}
-                            enabled={!!activeTask}
-                            bottomRef={chatEndRef as any}
-                        />
-                    </div>
-
-                    {/* Right: Work Order (33%) */}
-                    <div className="col-span-4 h-full relative bg-zinc-950 overflow-hidden">
-                        <WorkOrderPanel
-                            workOrder={workOrder}
-                            isGenerating={isGenerating}
-                            onComplete={handleCompleteTask}
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
+        <StandardPillarLayout
+            themeColor="blue"
+            leftContent={
+                <KanbanQueue
+                    todoTasks={todoTasks}
+                    doneTasks={doneTasks}
+                    activeTask={activeTask}
+                    onStartTask={handleStartTask}
+                    onCompleteSprint={completeSprint}
+                    onCompletePhase={handleCompletePhase}
+                    isPhaseComplete={relayGenerated}
+                />
+            }
+            mainContent={
+                <EngineerChat
+                    messages={messages}
+                    onSendMessage={handleSendMessage}
+                    enabled={!!activeTask}
+                    bottomRef={chatEndRef as any}
+                    activeTask={activeTask}
+                    onClearChat={() => {
+                        if (activeTask && confirm("Clear chat history for this task?")) {
+                            setMessages([]);
+                            setAllChats(prev => ({ ...prev, [activeTask.id]: [] }));
+                        }
+                    }}
+                />
+            }
+            rightContent={
+                <WorkOrderPanel
+                    workOrder={workOrder}
+                    isGenerating={isGenerating}
+                    onComplete={handleCompleteTask}
+                    isPhaseComplete={relayGenerated}
+                />
+            }
+        />
     );
 }

@@ -1,15 +1,23 @@
-
-import { AlertCircle, Bot, CheckCircle } from "lucide-react";
+import { AlertCircle, Bot, CheckCircle, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface WorkOrderPanelProps {
     workOrder: any;
     isGenerating: boolean;
     onComplete: () => void;
+    className?: string;
+    onClose?: () => void;
 }
 
-export function WorkOrderPanel({ workOrder, isGenerating, onComplete }: WorkOrderPanelProps) {
+export function WorkOrderPanel({ workOrder, isGenerating, onComplete, className, onClose }: WorkOrderPanelProps) {
     return (
-        <div className="w-full overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-zinc-800 shrink-0 h-full min-w-0 flex flex-col">
+        <div className={cn("w-full overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-zinc-800 shrink-0 h-full min-w-0 flex flex-col", className)}>
+            {/* Mobile Close Button */}
+            <div className="lg:hidden flex justify-end mb-4">
+                <button onClick={onClose} className="p-1 text-zinc-500 hover:text-white">
+                    <X className="h-5 w-5" />
+                </button>
+            </div>
             {isGenerating ? (
                 <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3">
                     <Bot className="h-8 w-8 animate-bounce" />
