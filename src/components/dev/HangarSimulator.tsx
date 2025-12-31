@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Smartphone, Monitor, Tablet, RotateCcw, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
+import { Smartphone, Monitor, Tablet, RotateCcw, ZoomIn, ZoomOut, RefreshCw, PanelTop } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Device = {
@@ -80,7 +80,7 @@ export function HangarSimulator() {
                         )}
                         title="Toggle Browser Address Bar"
                     >
-                        <div className="h-3 w-full border-t-2 border-current rounded-t-sm" />
+                        <PanelTop className="h-4 w-4" />
                     </button>
 
                     {/* Orientation */}
