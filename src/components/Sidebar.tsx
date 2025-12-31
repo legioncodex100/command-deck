@@ -216,7 +216,7 @@ export function Sidebar() {
 
             <div className="w-full px-2 mb-4 mt-auto flex flex-col gap-2 border-t border-zinc-900/50 pt-2">
                 {/* Admin Only: Hangar Entry */}
-                {user?.email === 'mohammed@legiongrappling.com' && (
+                {(user?.email === 'mohammed@legiongrappling.com' || profile?.role === 'ADMIN') && (
                     <Link
                         href="/hangar"
                         className="w-full flex items-center justify-center group-hover:justify-start gap-3 p-2 rounded-md hover:bg-indigo-950/20 transition-colors text-zinc-500 hover:text-indigo-400 mb-2 border border-transparent hover:border-indigo-500/20 group"

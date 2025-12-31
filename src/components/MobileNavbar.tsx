@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut } from 'lucide-react';
+import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut, Rocket } from 'lucide-react';
 import { CommandDeckLogo } from '@/components/branding/CommandDeckLogo';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/services/supabase";
@@ -200,6 +200,16 @@ export function MobileNavbar() {
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Mission Pillars</span>
                         </div>
+                        {/* Dashboard Home - Moved to Top */}
+                        <Link
+                            href="/dashboard"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-bold tracking-wider text-xs uppercase mb-3"
+                        >
+                            <Home className="h-4 w-4" />
+                            <span>Mission Hub</span>
+                        </Link>
+
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                             {PILLAR_ITEMS.map((item) => (
                                 <Link
@@ -243,15 +253,18 @@ export function MobileNavbar() {
                                     <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
                                 </Link>
                             ))}
-                            {/* Dashboard Home */}
-                            <Link
-                                href="/dashboard"
-                                onClick={() => setIsMenuOpen(false)}
-                                className="col-span-full flex items-center justify-center gap-2 p-3 rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-bold tracking-wider text-xs uppercase"
-                            >
-                                <Home className="h-4 w-4" />
-                                <span>Dashboard</span>
-                            </Link>
+
+                            {/* Admin Hangar Link */}
+                            {(user?.email === 'mohammed@legiongrappling.com' || profile?.role === 'ADMIN') && (
+                                <Link
+                                    href="/hangar"
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="col-span-full flex items-center justify-center gap-2 p-3 rounded-xl border border-indigo-900/30 bg-indigo-950/10 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/20 transition-all font-bold tracking-wider text-xs uppercase"
+                                >
+                                    <Rocket className="h-4 w-4" />
+                                    <span>Hangar Protocol</span>
+                                </Link>
+                            )}
                         </div>
                     </div>
 
