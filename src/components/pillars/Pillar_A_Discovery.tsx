@@ -11,8 +11,22 @@ import { DiscoveryRoadmap } from './discovery/DiscoveryRoadmap';
 import { DiscoveryChat } from './discovery/DiscoveryChat';
 import { DiscoveryArtifactViewer } from './discovery/DiscoveryArtifactViewer';
 
+import { useRouter, useSearchParams } from 'next/navigation';
+
 export default function Pillar_A_Discovery() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { project, documents, saveDocument } = useProject();
+
+    const toggleDrawer = (view: 'roadmap' | 'artifacts') => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (params.get('mobile_view') === view) {
+            params.delete('mobile_view');
+        } else {
+            params.set('mobile_view', view);
+        }
+        router.push(`?${params.toString()}`);
+    };
     const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string; recommendation?: any }[]>([]);
     const [input, setInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);

@@ -12,10 +12,18 @@ import { decomposeToBacklog, assessRisks, createRoadmap, evaluateHandover } from
 import { generateRelayArtifact } from '@/services/relay';
 import { checkStaleState } from '@/services/ripple';
 import StandardPillarLayout from './StandardPillarLayout';
+import { Task } from '@/types/planning';
 
 export default function Pillar_E_Planning() {
     const { activeProjectId, documents, saveDocument } = useProject();
-    const { activeSprint, startSprint, backlogTasks } = useSprint(activeProjectId);
+    const { todoTasks: rawTodo, createTask } = useSprint(activeProjectId);
+
+    const backlogTasks: Task[] = rawTodo.map(t => ({
+        ...t,
+        phase: 'Planning',
+        status: t.status ? t.status.toUpperCase() as any : 'BACKLOG',
+        description: t.description || undefined
+    }));
 
     // Right Panel View State is now handled in PlanningTools, but we hold data here
     const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
@@ -137,9 +145,12 @@ export default function Pillar_E_Planning() {
 
         const date = new Date();
         const sprintName = `Sprint ${date.toISOString().split('T')[0]}`;
-        await startSprint(activeProjectId, sprintName, `Sprint focused on ${selectedTasks.length} items`, date, new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), selectedTasks);
+
+        // MOCK: Since useSprint no longer supports startSprint directly with these args
+        alert(`Would create ${sprintName} with ${selectedTasks.length} items. (Sprint creation disabled in current version)`);
+
+        // Mock clear selection
         setSelectedTasks([]);
-        alert(`Started ${sprintName}!`);
     };
 
     const handleCompletePhase = async () => {
@@ -183,7 +194,7 @@ export default function Pillar_E_Planning() {
 
     return (
         <StandardPillarLayout
-            themeColor="purple"
+            themeColor="emerald"
             leftContent={
                 <RequirementFeed
                     prd={documents.find(d => d.type === 'PRD')?.content || "No PRD"}

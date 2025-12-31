@@ -95,5 +95,5 @@ export function usePillarTheme() {
         }
     };
 
-    return colors[themeColor];
+    return { ...colors[themeColor], color: themeColor };
 }

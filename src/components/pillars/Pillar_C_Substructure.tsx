@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -7,6 +6,7 @@ import { SubstructurePillars } from './substructure/SubstructurePillars';
 import { SubstructureChat } from './substructure/SubstructureChat';
 import { SubstructureSchemaViewer } from './substructure/SubstructureSchemaViewer';
 import { useSubstructureLogic } from './substructure/useSubstructureLogic';
+import StandardPillarLayout from './StandardPillarLayout';
 
 export default function Pillar_C_Substructure() {
     const {
@@ -17,33 +17,39 @@ export default function Pillar_C_Substructure() {
     } = useSubstructureLogic();
 
     return (
-        <div className="h-full w-full grid grid-cols-12 gap-0 bg-[#020402] text-zinc-300 font-mono">
-            <SubstructurePillars
-                pillars={pillars}
-                onShowVisualizer={() => setShowVisualizer(true)}
+        <>
+            <StandardPillarLayout
+                themeColor="emerald"
+                leftContent={
+                    <SubstructurePillars
+                        pillars={pillars}
+                        onShowVisualizer={() => setShowVisualizer(true)}
+                    />
+                }
+                mainContent={
+                    <SubstructureChat
+                        messages={messages}
+                        input={input}
+                        setInput={setInput}
+                        isProcessing={isProcessing}
+                        complexity={complexity}
+                        setComplexity={setComplexity}
+                        onSend={handleSend}
+                        onClear={handleClear}
+                        onInit={handleInit}
+                    />
+                }
+                rightContent={
+                    <SubstructureSchemaViewer
+                        liveSchema={liveSchema}
+                        relayGenerated={relayGenerated}
+                        staleState={staleState}
+                        isProcessing={isProcessing}
+                        onCompletePhase={handleCompletePhase}
+                    />
+                }
             />
-
-            <SubstructureChat
-                messages={messages}
-                input={input}
-                setInput={setInput}
-                isProcessing={isProcessing}
-                complexity={complexity}
-                setComplexity={setComplexity}
-                onSend={handleSend}
-                onClear={handleClear}
-                onInit={handleInit}
-            />
-
-            <SubstructureSchemaViewer
-                liveSchema={liveSchema}
-                relayGenerated={relayGenerated}
-                staleState={staleState}
-                isProcessing={isProcessing}
-                onCompletePhase={handleCompletePhase}
-            />
-
             <SchemaVisualizer sql={liveSchema} isOpen={showVisualizer} onClose={() => setShowVisualizer(false)} />
-        </div>
+        </>
     );
 }

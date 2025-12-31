@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Layers, FileText, CheckCheck, AlertCircle, ArrowRight, Rocket, X } from 'lucide-react';
+import { Layers, FileText, CheckCheck, AlertCircle, ArrowRight, Rocket, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BacklogMapper } from './BacklogMapper';
 import { BacklogPreview } from './BacklogPreview';
 import { Task } from '@/types/planning';
+import { PillarPanel, PillarHeader, PillarBody } from '../ui';
+import { usePillarTheme } from '../PillarProvider';
 
 interface PlanningToolsProps {
     // Data Props
@@ -44,17 +46,40 @@ export function PlanningTools({
     onClose
 }: PlanningToolsProps) {
     const [view, setView] = useState<'TASKS' | 'DOC'>('TASKS');
+    const theme = usePillarTheme();
 
     return (
-        <div className={cn("min-w-0 flex flex-col bg-[#050505] h-full overflow-hidden", className)}>
-            {/* View Toggles & Header */}
-            <div className="flex border-b border-[#27272a] bg-zinc-950 items-center justify-between">
+        <PillarPanel className={className}>
+            <PillarHeader
+                icon={Wrench}
+                title="Planning Workbench"
+                onClose={onClose}
+                actions={
+                    <div className="flex items-center gap-1">
+                        {relayGenerated ? (
+                            <CheckCheck className={`h-4 w-4 ${theme.text}`} />
+                        ) : (
+                            <button
+                                onClick={onCompletePhase}
+                                disabled={isProcessing}
+                                className={`p-1 hover:bg-zinc-800 rounded text-zinc-500 hover:${theme.text} transition-colors`}
+                                title={staleState.isStale && typeof staleState.reason === 'string' ? `Stale: ${staleState.reason}` : "Complete Phase"}
+                            >
+                                {staleState.isStale ? <AlertCircle className="h-4 w-4 text-amber-500" /> : <ArrowRight className="h-4 w-4" />}
+                            </button>
+                        )}
+                    </div>
+                }
+            />
+
+            {/* View Toggles - Sub Header */}
+            <div className="flex border-b border-zinc-900 bg-zinc-950 items-center justify-between shrink-0">
                 <div className="flex flex-1">
                     <button
                         onClick={() => setView('TASKS')}
                         className={cn(
-                            "flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors border-r border-[#27272a]",
-                            view === 'TASKS' ? "bg-zinc-900 text-purple-400" : "text-zinc-600 hover:text-zinc-400"
+                            "flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors border-r border-zinc-900",
+                            view === 'TASKS' ? `bg-zinc-900 ${theme.text}` : "text-zinc-600 hover:text-zinc-400"
                         )}
                     >
                         <Layers className="h-3.5 w-3.5" /> Task Map
@@ -63,35 +88,15 @@ export function PlanningTools({
                         onClick={() => setView('DOC')}
                         className={cn(
                             "flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors border-r border-[#27272a]",
-                            view === 'DOC' ? "bg-zinc-900 text-emerald-400" : "text-zinc-600 hover:text-zinc-400"
+                            view === 'DOC' ? `bg-zinc-900 ${theme.text}` : "text-zinc-600 hover:text-zinc-400"
                         )}
                     >
                         <FileText className="h-3.5 w-3.5" /> Backlog
                     </button>
                 </div>
-
-                <div className="px-2 flex items-center gap-1">
-                    {relayGenerated ? (
-                        <CheckCheck className="h-4 w-4 text-emerald-500" />
-                    ) : (
-                        <button
-                            onClick={onCompletePhase}
-                            disabled={isProcessing}
-                            className="p-1 hover:bg-zinc-800 rounded text-zinc-500 hover:text-emerald-500 transition-colors"
-                            title={staleState.isStale && typeof staleState.reason === 'string' ? `Stale: ${staleState.reason}` : "Complete Phase"}
-                        >
-                            {staleState.isStale ? <AlertCircle className="h-4 w-4 text-amber-500" /> : <ArrowRight className="h-4 w-4" />}
-                        </button>
-                    )}
-
-                    {/* Mobile Close Button */}
-                    <button onClick={onClose} className="lg:hidden p-1 ml-1 text-zinc-500 hover:text-white border-l border-zinc-800 pl-2">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
             </div>
 
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative flex flex-col min-h-0">
                 {view === 'DOC' ? (
                     <BacklogPreview
                         markdown={backlogMarkdown}
@@ -101,11 +106,11 @@ export function PlanningTools({
                 ) : (
                     /* Task Mapper Logic Wrapper */
                     <div className="flex flex-col h-full">
-                        <header className="p-3 border-b border-zinc-900 flex justify-between items-center bg-black/60 shadow-sm">
+                        <div className="p-3 border-b border-zinc-900 flex justify-between items-center bg-black/60 shadow-sm shrink-0">
                             {selectedTasks.length > 0 ? (
                                 <button
                                     onClick={handleCreateSprint}
-                                    className="w-full flex items-center justify-center gap-2 px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold uppercase tracking-wider rounded transition-all animate-in fade-in zoom-in duration-300"
+                                    className={`w-full flex items-center justify-center gap-2 px-3 py-1 ${theme.text.replace('text-', 'bg-').replace('400', '600')} hover:${theme.text.replace('text-', 'bg-').replace('400', '500')} text-white text-[10px] font-bold uppercase tracking-wider rounded transition-all animate-in fade-in zoom-in duration-300`}
                                 >
                                     <Rocket className="h-3 w-3" /> Launch ({selectedTasks.length})
                                 </button>
@@ -114,10 +119,10 @@ export function PlanningTools({
                                     Select Tasks to Sprint
                                 </div>
                             )}
-                        </header>
+                        </div>
 
                         {staleState.isStale && (
-                            <div className="bg-amber-900/20 border-b border-amber-500/20 p-2 flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2">
+                            <div className="bg-amber-900/20 border-b border-amber-500/20 p-2 flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 shrink-0">
                                 <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
                                 <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wide truncate">
                                     {typeof staleState.reason === 'string' ? `Ripple: ${staleState.reason}` : "Ripple Detected"}
@@ -125,7 +130,7 @@ export function PlanningTools({
                             </div>
                         )}
 
-                        <div className="flex-1 overflow-auto p-0 min-h-0">
+                        <PillarBody scrollable={false} className="p-0">
                             <BacklogMapper
                                 tasks={backlogTasks}
                                 isGenerating={isProcessing}
@@ -133,10 +138,10 @@ export function PlanningTools({
                                 selectedIds={selectedTasks}
                                 onToggleSelect={onToggleSelect}
                             />
-                        </div>
+                        </PillarBody>
                     </div>
                 )}
             </div>
-        </div>
+        </PillarPanel>
     );
 }

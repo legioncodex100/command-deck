@@ -143,7 +143,7 @@ export default function Pillar_D_Design() {
 
     return (
         <StandardPillarLayout
-            themeColor="indigo"
+            themeColor="emerald"
             leftContent={
                 <DesignDirectives
                     pillars={pillars}

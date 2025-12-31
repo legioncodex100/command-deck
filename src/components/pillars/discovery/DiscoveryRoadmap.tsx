@@ -1,45 +1,65 @@
 "use client";
 
 import React from 'react';
-import { Sparkles, Activity, X } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PillarPanel, PillarHeader, PillarBody } from '../ui';
+import { PillarRoadmap } from '../ui/PillarRoadmap';
+import { usePillarTheme } from '../PillarProvider';
 
 interface DiscoveryRoadmapProps {
     phases: string[];
-    className?: string;
+    className?: string; // For compatibility
     onClose?: () => void;
 }
 
 export function DiscoveryRoadmap({ phases, className, onClose }: DiscoveryRoadmapProps) {
-    const RoadmapItem = ({ label, done }: { label: string, done: boolean }) => (
-        <div className={`p-3 rounded border flex items-center justify-between ${done ? 'bg-emerald-950/20 border-emerald-500/30' : 'bg-black/40 border-zinc-800'}`}>
-            <span className={`text-xs font-mono uppercase tracking-widest ${done ? 'text-emerald-400' : 'text-zinc-500'}`}>{label}</span>
-            {done && <Activity className="h-3 w-3 text-emerald-500" />}
-        </div>
-    );
+    const theme = usePillarTheme();
+    const roadmapItems = ["VISION", "AUDIENCE", "LOGIC", "FEATURES", "EDGE_CASES"].map(label => ({
+        id: label,
+        label,
+        status: phases.some(p => p.toUpperCase() === label.toUpperCase()) ? 'COMPLETED' as const : 'PENDING' as const
+    }));
+
+    // Logic to determine "Current" active item (first pending, or all completed)
+    // Actually, in the image, "active" seems to imply the *current phase being worked on*.
+    // For now, let's treat "COMPLETED" items as active style for consistency with "phases done".
+    // Or we can assume the last "done" one is active?
+    // Let's stick to the user's logic: if it's in the list, it's done. 
+    // Wait, the user image shows all items. "Active" might mean the pillar itself is active.
+    // I will map 'phases' (which are completed phases) to COMPLETED. 
+    // And possibly highlight the *next* one as ACTIVE? 
+    // Let's simpler: If it's in `phases`, it's COMPLETED. 
+    // Use `phases` to determine status.
+
+    // Improved Status Logic:
+    // If "VISION" is in phases -> COMPLETED.
+    // If "VISION" is NOT in phases, but it's the first one not done -> ACTIVE.
+    // Others -> PENDING.
+
+    const strategies = ["VISION", "AUDIENCE", "LOGIC", "FEATURES", "EDGE_CASES"];
+    const mappedItems = strategies.map((label, index) => {
+        const isDone = phases.some(p => p.toUpperCase() === label.toUpperCase());
+        const isNext = !isDone && (index === 0 || phases.some(p => p.toUpperCase() === strategies[index - 1].toUpperCase()));
+
+        return {
+            id: label,
+            label,
+            status: isDone ? 'COMPLETED' : (isNext ? 'ACTIVE' : 'PENDING') as 'COMPLETED' | 'ACTIVE' | 'PENDING'
+        };
+    });
 
     return (
-        <div className={cn("border-r border-emerald-500/20 bg-[#020402] flex flex-col overflow-hidden", className)}>
-            <header className="p-4 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded bg-emerald-900/20 border border-emerald-500/30 flex items-center justify-center">
-                        <Sparkles className="h-4 w-4 text-emerald-500" />
-                    </div>
-                    <div>
-                        <h2 className="text-sm font-bold text-emerald-100 uppercase tracking-widest">Discovery Lab</h2>
-                        <p className="text-[10px] text-emerald-500/60 font-mono">PHASE 12.2 // ACTIVE</p>
-                    </div>
-                </div>
-                {/* Mobile Close Button */}
-                <button onClick={onClose} className="lg:hidden p-2 text-zinc-500 hover:text-white">
-                    <X className="h-5 w-5" />
-                </button>
-            </header>
-            <div className="flex-1 overflow-y-auto p-4 pt-0 space-y-4 scrollbar-thin scrollbar-thumb-emerald-900/50">
-                {["VISION", "AUDIENCE", "LOGIC", "FEATURES", "EDGE_CASES"].map(p => (
-                    <RoadmapItem key={p} label={p} done={phases.some(active => active.toUpperCase() === p.toUpperCase())} />
-                ))}
-            </div>
-        </div>
+        <PillarPanel className={className}>
+            <PillarHeader
+                icon={Sparkles}
+                title="Discovery Lab"
+                subtitle="PHASE 12.2 // ACTIVE"
+                onClose={onClose}
+            />
+            <PillarBody>
+                <PillarRoadmap items={mappedItems} />
+            </PillarBody>
+        </PillarPanel>
     );
 }

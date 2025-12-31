@@ -17,15 +17,44 @@ import {
 import { generateRelayArtifact } from '@/services/relay';
 import { Task } from '@/types/planning';
 import StandardPillarLayout from './StandardPillarLayout';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Pillar_F_Construction() {
-    const { activeProjectId, documents, saveDocument } = useProject(); // Added saveDocument to useProject destructuring if available? useProject doesn't expose it usually? Wait, useProject exposes saveDocument? Checking Pillar A. Yes it does.
-    const { activeSprint, updateTaskStatus, completeSprint } = useSprint(activeProjectId);
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-    // Derived Tasks
-    const todoTasks = activeSprint?.tasks.filter(t => t.status === 'TODO') || [];
-    const doneTasks = activeSprint?.tasks.filter(t => t.status === 'DONE') || [];
-    const activeTask = activeSprint?.tasks.find(t => t.status === 'IN_PROGRESS');
+    const toggleDrawer = (view: 'roadmap' | 'artifacts') => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (params.get('mobile_view') === view) {
+            params.delete('mobile_view');
+        } else {
+            params.set('mobile_view', view);
+        }
+        router.push(`?${params.toString()}`);
+    };
+    const { activeProjectId, documents, saveDocument } = useProject();
+    const { todoTasks: rawTodo, doneTasks: rawDone, activeTask: rawActive, startTask, completeTask, stopTask, createTask } = useSprint(activeProjectId);
+
+    // Map DbTask to Task
+    const mapToTask = (t: any): Task => ({
+        ...t,
+        phase: 'Construction',
+        status: t.status ? t.status.toUpperCase() : 'TODO',
+        description: t.description || undefined
+    });
+
+    const todoTasks = rawTodo.map(mapToTask);
+    const doneTasks = rawDone.map(mapToTask);
+    const activeTask = rawActive ? mapToTask(rawActive) : undefined;
+
+    // Compat Wrapper for updateTaskStatus
+    const updateTaskStatus = async (taskId: string, status: string) => {
+        if (status === 'IN_PROGRESS' || status === 'in_progress') await startTask(taskId);
+        else if (status === 'DONE' || status === 'done') await completeTask(taskId);
+        else if (status === 'TODO' || status === 'todo') await stopTask(taskId);
+    };
+
+    const completeSprint = async () => { alert("Sprint Completion not implemented."); };
 
     // State
     const [workOrder, setWorkOrder] = useState<WorkOrder | null>(null);
@@ -75,10 +104,6 @@ export default function Pillar_F_Construction() {
                     });
                 }
             }
-
-            // ... (work order gen unchanged)
-        } else {
-            // ...
         }
     }, [activeTask?.id, activeProjectId]);
 
@@ -91,9 +116,6 @@ export default function Pillar_F_Construction() {
             return () => clearTimeout(timeout);
         }
     }, [allChats, activeProjectId]);
-
-    // ...
-
 
     const handleStartTask = async (taskId: string) => {
         if (activeTask) {
@@ -157,7 +179,7 @@ export default function Pillar_F_Construction() {
 
     return (
         <StandardPillarLayout
-            themeColor="blue"
+            themeColor="emerald"
             leftContent={
                 <KanbanQueue
                     todoTasks={todoTasks}

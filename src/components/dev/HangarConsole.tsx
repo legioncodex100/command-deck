@@ -6,6 +6,7 @@ import { syncMemoryToVault, commitVaultToMemory } from '@/services/hangar';
 import { useSprint } from '@/hooks/useSprint';
 import { KanbanQueue } from '../pillars/construction/KanbanQueue';
 import { EngineerChat } from '../pillars/construction/EngineerChat';
+import { PillarProvider } from '../pillars/PillarProvider';
 import { supabase } from '@/services/supabase';
 
 const CORE_PROJECT_ID = 'c0de0000-0000-0000-0000-000000000000';
@@ -19,7 +20,7 @@ export function HangarConsole() {
     ]);
 
     // We use the useSprint hook pointing to the CORE PROJECT to manage Host tasks
-    const { activeSprint, updateTaskStatus, completeSprint } = useSprint(CORE_PROJECT_ID);
+    const { activeTask } = useSprint(CORE_PROJECT_ID);
 
     const handleSync = async () => {
         setSyncing(true);
@@ -112,20 +113,22 @@ export function HangarConsole() {
                 <div className="col-span-9 bg-black flex flex-col items-center justify-center text-zinc-600 border-l border-zinc-900">
                     {mode === 'EVOLUTION' ? (
                         <div className="w-full h-full flex flex-col">
-                            <EngineerChat
-                                enabled={true}
-                                messages={messages}
-                                onSendMessage={(text) => {
-                                    setMessages(prev => [...prev, { role: 'user', text }]);
-                                    // Mock response
-                                    setTimeout(() => {
-                                        setMessages(prev => [...prev, {
-                                            role: 'model',
-                                            text: `**Directive Received:** ${text}\n\n*Processing architectural implications...*`
-                                        }]);
-                                    }, 1000);
-                                }}
-                            />
+                            <PillarProvider themeColor="emerald">
+                                <EngineerChat
+                                    enabled={true}
+                                    messages={messages}
+                                    onSendMessage={(text) => {
+                                        setMessages(prev => [...prev, { role: 'user', text }]);
+                                        // Mock response
+                                        setTimeout(() => {
+                                            setMessages(prev => [...prev, {
+                                                role: 'model',
+                                                text: `**Directive Received:** ${text}\n\n*Processing architectural implications...*`
+                                            }]);
+                                        }, 1000);
+                                    }}
+                                />
+                            </PillarProvider>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center">

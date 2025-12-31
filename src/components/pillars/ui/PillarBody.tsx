@@ -11,12 +11,12 @@ interface PillarBodyProps {
 }
 
 export function PillarBody({ children, className, scrollable = true }: PillarBodyProps) {
-    const theme = usePillarTheme();
+    // const theme = usePillarTheme();
 
     return (
         <div className={cn(
             "flex-1 min-h-0 relative", // min-h-0 is critical for flex child scrolling
-            scrollable && `overflow-y-auto scrollbar-thin ${theme.scrollbar}`,
+            scrollable && "overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800",
             !scrollable && "overflow-hidden",
             className
         )}>
