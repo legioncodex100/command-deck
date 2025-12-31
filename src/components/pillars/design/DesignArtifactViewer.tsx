@@ -1,11 +1,11 @@
 "use client";
 
 import React from 'react';
-import { FileText, CheckCheck, ArrowRight, AlertCircle, X } from 'lucide-react';
+import { ArrowRight, CheckCheck, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface StrategyArtifactViewerProps {
-    liveStrategy: string;
+interface DesignArtifactViewerProps {
+    designDoc: string;
     relayGenerated: boolean;
     staleState: { isStale: boolean; reason?: string | null };
     isProcessing: boolean;
@@ -14,23 +14,29 @@ interface StrategyArtifactViewerProps {
     onClose?: () => void; // StandardPillarLayout prop
 }
 
-export function StrategyArtifactViewer({ liveStrategy, relayGenerated, staleState, isProcessing, onCompletePhase, className, onClose }: StrategyArtifactViewerProps) {
+export function DesignArtifactViewer({
+    designDoc, relayGenerated, staleState,
+    isProcessing, onCompletePhase, className, onClose
+}: DesignArtifactViewerProps) {
     return (
         <div className={cn("bg-[#050505] flex flex-col border-l border-zinc-900 overflow-hidden", className)}>
             <header className="p-3 border-b border-zinc-800 flex justify-between items-center bg-zinc-950/50">
                 <div className="flex items-center gap-2 text-xs font-bold text-zinc-400 uppercase tracking-widest">
-                    <FileText className="h-4 w-4" /> STRATEGY.md
+                    <FileText className="h-4 w-4" /> DESIGN_SYSTEM.md
                 </div>
                 <div className="flex items-center gap-2">
                     {relayGenerated ? (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-900/30 rounded border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-indigo-900/30 rounded border border-indigo-500/30 text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
                             <CheckCheck className="h-3 w-3" /> Phase Complete
                         </div>
                     ) : (
                         <button
                             onClick={onCompletePhase}
                             disabled={isProcessing}
-                            className={`flex items-center gap-2 px-3 py-1 text-black text-[10px] font-bold uppercase tracking-wider rounded transition-all disabled:opacity-50 ${staleState.isStale ? 'bg-amber-600 hover:bg-amber-500' : 'bg-emerald-600 hover:bg-emerald-500'}`}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1 text-black text-[10px] font-bold uppercase tracking-wider rounded transition-all disabled:opacity-50",
+                                staleState.isStale ? "bg-amber-600 hover:bg-amber-500" : "bg-indigo-600 hover:bg-indigo-500"
+                            )}
                         >
                             {staleState.isStale ? 'Complete (Stale)' : 'Complete Phase'} <ArrowRight className="h-3 w-3" />
                         </button>
@@ -41,15 +47,13 @@ export function StrategyArtifactViewer({ liveStrategy, relayGenerated, staleStat
                     </button>
                 </div>
             </header>
-            {staleState.isStale && (
-                <div className="bg-amber-900/20 border-b border-amber-500/20 p-2 flex items-center gap-2">
-                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wide truncate">Ripple: {staleState.reason}</span>
-                </div>
-            )}
-            <div className="flex-1 overflow-y-auto p-6 font-mono text-[11px] leading-6 text-zinc-400 whitespace-pre-wrap scrollbar-thin">
-                {liveStrategy}
+            <div className="flex-1 overflow-y-auto p-6 font-mono text-[11px] leading-6 text-zinc-400 whitespace-pre-wrap scrollbar-thin scrollbar-thumb-zinc-800">
+                {designDoc}
             </div>
         </div>
     );
+}
+
+function FileText({ className }: { className?: string }) {
+    return <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>;
 }

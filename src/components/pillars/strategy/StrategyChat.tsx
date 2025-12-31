@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send, Zap, Terminal, Trash2, Play, Sparkles, CheckCircle2 } from 'lucide-react';
 import { ComplexitySelector, ComplexityLevel } from '@/components/ComplexitySelector';
+import { cn } from '@/lib/utils';
 
 interface StrategyChatProps {
     messages: { role: 'user' | 'model'; text: string; recommendation?: any }[];
@@ -15,9 +16,10 @@ interface StrategyChatProps {
     onSend: (text: string) => void;
     onClear: () => void;
     onInit: () => void;
+    className?: string; // StandardPillarLayout prop
 }
 
-export function StrategyChat({ messages, input, setInput, isProcessing, complexity, setComplexity, onSend, onClear, onInit }: StrategyChatProps) {
+export function StrategyChat({ messages, input, setInput, isProcessing, complexity, setComplexity, onSend, onClear, onInit, className }: StrategyChatProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -38,7 +40,7 @@ export function StrategyChat({ messages, input, setInput, isProcessing, complexi
     };
 
     return (
-        <div className="col-span-6 flex flex-col border-r border-zinc-900 bg-black relative overflow-hidden">
+        <div className={cn("flex flex-col border-r border-zinc-900 bg-black relative overflow-hidden", className)}>
             <header className="flex items-center justify-between p-3 border-b border-zinc-900 bg-zinc-950/50">
                 <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest pl-2">
                     <Terminal className="h-4 w-4" /> Architect Terminal

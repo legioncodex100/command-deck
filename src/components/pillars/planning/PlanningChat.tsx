@@ -14,9 +14,10 @@ interface PlanningChatProps {
     onSendMessage: (text: string) => void;
     onClear: () => void;
     isProcessing: boolean;
+    className?: string;
 }
 
-export function PlanningChat({ messages, onSendMessage, onClear, isProcessing }: PlanningChatProps) {
+export function PlanningChat({ messages, onSendMessage, onClear, isProcessing, className }: PlanningChatProps) {
     const [input, setInput] = useState("");
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +33,7 @@ export function PlanningChat({ messages, onSendMessage, onClear, isProcessing }:
     };
 
     return (
-        <div className="h-full flex flex-col bg-zinc-950/30 relative overflow-hidden">
+        <div className={cn("h-full flex flex-col bg-zinc-950/30 relative overflow-hidden", className)}>
             {/* Header */}
             <div className="shrink-0 flex items-center justify-between p-3 border-b border-[#27272a] bg-zinc-950/80">
                 <div className="flex items-center gap-2">

@@ -11,6 +11,7 @@ import { loadStrategySession, saveStrategySession, deleteStrategySession } from 
 import { ComplexitySelector, ComplexityLevel } from '@/components/ComplexitySelector';
 import { generateRelayArtifact } from '@/services/relay';
 
+import StandardPillarLayout from './StandardPillarLayout';
 import { StrategyDirectives } from './strategy/StrategyDirectives';
 import { StrategyChat } from './strategy/StrategyChat';
 import { StrategyArtifactViewer } from './strategy/StrategyArtifactViewer';
@@ -25,31 +26,36 @@ export default function Pillar_B_Strategy() {
     } = useStrategyLogic();
 
     return (
-        <div className="h-full w-full grid grid-cols-12 gap-0 bg-[#020402] text-zinc-300 font-mono">
-            <StrategyDirectives
-                pillars={pillars}
-                currentPRDTitle={currentPRDTitle}
-            />
-
-            <StrategyChat
-                messages={messages}
-                input={input}
-                setInput={setInput}
-                isProcessing={isProcessing}
-                complexity={complexity}
-                setComplexity={setComplexity}
-                onSend={handleSend}
-                onClear={handleClear}
-                onInit={handleInit}
-            />
-
-            <StrategyArtifactViewer
-                liveStrategy={liveStrategy}
-                relayGenerated={relayGenerated}
-                staleState={staleState}
-                isProcessing={isProcessing}
-                onCompletePhase={handleCompletePhase}
-            />
-        </div>
+        <StandardPillarLayout
+            themeColor="emerald"
+            leftContent={
+                <StrategyDirectives
+                    pillars={pillars}
+                    currentPRDTitle={currentPRDTitle}
+                />
+            }
+            mainContent={
+                <StrategyChat
+                    messages={messages}
+                    input={input}
+                    setInput={setInput}
+                    isProcessing={isProcessing}
+                    complexity={complexity}
+                    setComplexity={setComplexity}
+                    onSend={handleSend}
+                    onClear={handleClear}
+                    onInit={handleInit}
+                />
+            }
+            rightContent={
+                <StrategyArtifactViewer
+                    liveStrategy={liveStrategy}
+                    relayGenerated={relayGenerated}
+                    staleState={staleState}
+                    isProcessing={isProcessing}
+                    onCompletePhase={handleCompletePhase}
+                />
+            }
+        />
     );
 }
