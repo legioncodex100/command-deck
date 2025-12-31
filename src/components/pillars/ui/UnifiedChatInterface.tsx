@@ -200,7 +200,7 @@ export function UnifiedChatInterface({
                 <div className={`relative bg-zinc-950 border border-zinc-800 rounded-lg focus-within:border-${themeColor}-500/50 transition-colors flex items-end`}>
                     <textarea
                         ref={textareaRef}
-                        className="w-full bg-transparent p-3 pr-12 text-sm focus:outline-none resize-none max-h-[200px] min-h-[44px] scrollbar-thin scrollbar-thumb-zinc-700"
+                        className="w-full bg-transparent p-3 pr-12 text-sm focus:outline-none resize-none max-h-[200px] min-h-[44px] lg:min-h-[44px] py-3 lg:py-3 scrollbar-thin scrollbar-thumb-zinc-700"
                         placeholder={placeholder}
                         value={input}
                         onChange={e => setInput(e.target.value)}

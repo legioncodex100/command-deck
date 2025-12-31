@@ -30,14 +30,14 @@ export function GlobalHeader() {
 
     return (
         <header className="flex flex-col gap-1 border-b border-zinc-800/50 pb-4 shrink-0 px-6 lg:px-8 pt-6">
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider mb-1">
+            <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider mb-1">
                 Command Deck <span className="text-zinc-700">/</span> {formattedPage}
             </div>
-            <div className="flex items-baseline justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-baseline justify-between gap-2 lg:gap-0">
                 <h1 className="text-2xl font-bold tracking-tight text-white">
                     {formattedPage}
                 </h1>
-                <p className="text-emerald-500 font-mono text-xs flex items-center gap-2 bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/20">
+                <p className="w-fit text-emerald-500 font-mono text-xs flex items-center gap-2 bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/20">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     {activeProject?.name || "No Active Project"}
                 </p>
