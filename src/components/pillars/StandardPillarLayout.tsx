@@ -66,7 +66,7 @@ export default function StandardPillarLayout({
 
                 {/* Left Panel: Roadmap/Context (Drawer on Mobile, Col 1-3 on Desktop) */}
                 <div className={cn(
-                    "transition-transform duration-300 ease-in-out z-50 flex flex-col overflow-hidden bg-[#020402] max-h-full min-h-0",
+                    "transition-transform duration-300 ease-in-out z-[100] flex flex-col overflow-hidden bg-[#020402] max-h-full min-h-0",
                     // Desktop
                     "lg:col-span-3 lg:static lg:translate-x-0 lg:w-auto lg:border-r",
                     borderColor,
@@ -96,7 +96,7 @@ export default function StandardPillarLayout({
 
                 {/* Right Panel: Artifacts/Tools (Drawer on Mobile, Col 10-12 on Desktop) */}
                 <div className={cn(
-                    "transition-transform duration-300 ease-in-out z-50 flex flex-col overflow-hidden bg-[#050505] max-h-full min-h-0",
+                    "transition-transform duration-300 ease-in-out z-[100] flex flex-col overflow-hidden bg-[#050505] max-h-full min-h-0",
                     // Desktop
                     "lg:col-span-3 lg:static lg:translate-x-0 lg:w-auto lg:border-l",
                     borderColor,
