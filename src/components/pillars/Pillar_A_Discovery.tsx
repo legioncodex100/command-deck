@@ -1,4 +1,8 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import { useProject } from '@/hooks/useProject';
 import { sendDiscoveryMessage } from '@/services/discovery';
 import { loadDiscoverySession, saveDiscoverySession, deleteDiscoverySession } from '@/services/discovery_persistence';
@@ -106,10 +110,42 @@ export default function Pillar_A_Discovery() {
         }
     };
 
-    return (
-        <div className="h-full w-full grid grid-cols-12 gap-0 bg-black text-zinc-300 font-sans">
-            <DiscoveryRoadmap phases={phases} />
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const activeDrawer = searchParams.get('mobile_view'); // 'roadmap' | 'artifacts' | null
 
+    const closeDrawer = () => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete('mobile_view');
+        router.replace(`?${params.toString()}`);
+    };
+
+    return (
+        <div className="h-full w-full relative flex lg:grid lg:grid-cols-12 gap-0 bg-black text-zinc-300 font-sans overflow-hidden">
+
+            {/* Mobile Overlay Backdrop */}
+            {activeDrawer && (
+                <div
+                    className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+                    onClick={closeDrawer}
+                />
+            )}
+
+            {/* Left Panel: Roadmap (Drawer on Mobile, Column on Desktop) */}
+            <DiscoveryRoadmap
+                phases={phases}
+                onClose={closeDrawer}
+                className={cn(
+                    "transition-transform duration-300 ease-in-out z-50",
+                    // Desktop: Static 3-col
+                    "lg:col-span-3 lg:static lg:translate-x-0 lg:w-auto lg:border-r lg:border-emerald-500/20",
+                    // Mobile: Fixed Drawer
+                    "fixed inset-y-0 left-0 w-[85vw] border-r border-zinc-800",
+                    activeDrawer === 'roadmap' ? "translate-x-0" : "-translate-x-full"
+                )}
+            />
+
+            {/* Center Panel: Chat (Always Visible, Full Width on Mobile) */}
             <DiscoveryChat
                 messages={messages}
                 input={input}
@@ -119,13 +155,26 @@ export default function Pillar_A_Discovery() {
                 setComplexity={setComplexity}
                 onSend={handleSend}
                 onClear={handleClear}
+                className="lg:col-span-6 w-full h-full z-0"
             />
 
+            {/* Right Panel: Artifacts (Drawer on Mobile, Column on Desktop) */}
             <DiscoveryArtifactViewer
                 livePRD={livePRD}
                 relayGenerated={relayGenerated}
                 onCompletePhase={handleCompletePhase}
                 isProcessing={isProcessing}
+                complexity={complexity}
+                setComplexity={setComplexity}
+                onClose={closeDrawer}
+                className={cn(
+                    "transition-transform duration-300 ease-in-out z-50",
+                    // Desktop: Static 3-col
+                    "lg:col-span-3 lg:static lg:translate-x-0 lg:w-auto lg:border-l lg:border-emerald-500/20",
+                    // Mobile: Fixed Drawer
+                    "fixed inset-y-0 right-0 w-[85vw] border-l border-zinc-800",
+                    activeDrawer === 'artifacts' ? "translate-x-0" : "translate-x-full"
+                )}
             />
         </div>
     );

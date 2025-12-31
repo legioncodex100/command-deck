@@ -1,18 +1,38 @@
 "use client";
 
 import React from 'react';
-import { FileText, CheckCheck, ArrowRight } from 'lucide-react';
+import { FileText, CheckCheck, ArrowRight, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ComplexitySelector, ComplexityLevel } from '@/components/ComplexitySelector';
+import { User } from 'lucide-react';
 
 interface DiscoveryArtifactViewerProps {
     livePRD: string;
     relayGenerated: boolean;
     onCompletePhase: () => void;
     isProcessing: boolean;
+    className?: string;
+    complexity: ComplexityLevel;
+    setComplexity: (val: ComplexityLevel) => void;
+    onClose?: () => void;
 }
 
-export function DiscoveryArtifactViewer({ livePRD, relayGenerated, onCompletePhase, isProcessing }: DiscoveryArtifactViewerProps) {
+export function DiscoveryArtifactViewer({ livePRD, relayGenerated, onCompletePhase, isProcessing, className, complexity, setComplexity, onClose }: DiscoveryArtifactViewerProps) {
     return (
-        <div className="col-span-4 bg-[#020402] flex flex-col overflow-hidden">
+        <div className={cn("bg-[#020402] flex flex-col overflow-hidden", className)}>
+            {/* Mobile-Only Settings Section */}
+            <div className="lg:hidden p-4 border-b border-zinc-800 bg-zinc-900/50 flex items-start justify-between">
+                <div>
+                    <div className="flex items-center gap-2 mb-3 text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                        <User className="h-4 w-4" /> Consultant Settings
+                    </div>
+                    <ComplexitySelector value={complexity} onChange={setComplexity} />
+                </div>
+                <button onClick={onClose} className="p-1 text-zinc-500 hover:text-white">
+                    <X className="h-5 w-5" />
+                </button>
+            </div>
+
             <div className="p-3 border-b border-emerald-500/10 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-emerald-600" />

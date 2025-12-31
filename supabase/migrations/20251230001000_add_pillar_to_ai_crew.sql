@@ -1,11 +1,16 @@
 -- Add pillar column to ai_crew
 ALTER TABLE public.ai_crew 
-ADD COLUMN pillar text;
+ADD COLUMN IF NOT EXISTS pillar text;
 
 -- Add constraint to ensure valid pillars
-ALTER TABLE public.ai_crew
-ADD CONSTRAINT valid_pillar_check 
-CHECK (pillar IN ('Discovery', 'Strategy', 'Substructure', 'Design', 'Planning', 'Construction', 'Integration', 'Operations'));
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'valid_pillar_check') then
+    ALTER TABLE public.ai_crew
+    ADD CONSTRAINT valid_pillar_check 
+    CHECK (pillar IN ('Discovery', 'Strategy', 'Substructure', 'Design', 'Planning', 'Construction', 'Integration', 'Operations'));
+  end if;
+end $$;
 
 -- Update existing agents with their correct Pillar
 

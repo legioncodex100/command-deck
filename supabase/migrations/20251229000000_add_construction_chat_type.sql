@@ -11,4 +11,4 @@ CHECK (type IN (
   'SPRINT',
   'PLANNING_CHAT',
   'CONSTRUCTION_CHAT'
-));
+)) NOT VALID;

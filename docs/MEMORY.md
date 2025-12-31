@@ -3,7 +3,7 @@
 ## Project: Command Deck
 
 ### Core Objective
-Build a "civilian-facing" interface (The Deck) for the Legion Grappling CRM, allowing non-admin users (Civilians/Operatives) to view their stats, manage their profile, and interact with the system.
+Build a "civilian-facing" interface (The Deck) for the Command Deck, allowing non-admin users (Civilians/Operatives) to view their stats, manage their profile, and interact with the system.
 
 ### Session: Persistent Profile & Matrix Filter (Current)
 - **Goal**: Implement persistent profile editing and a "Matrix" style avatar filter.
@@ -68,3 +68,24 @@ Build a "civilian-facing" interface (The Deck) for the Legion Grappling CRM, all
     - **Engineering Bay**: Replaced `AgentEditor` modal with a dedicated "Tri-Pane" workstation (`/hangar/ai/[key]`) for immersive agent design.
     - **Personnel Director**: Implemented a "Meta-Agent" chat interface (`consultPersonnelDirector`) that uses `gemini-1.5-flash` to generate and update agent configs (System Prompt, Role, Model) via natural language.
     - **Divisional Structure**: Introduced 7 Pillars (Discovery, Strategy, Substructure, Design, Planning, Construction, Integration) and enforced strict assignment via schema constraints and UI selectors.
+
+### Session: Flight Deck Intelligence & Evolution Sync
+- **Goal**: Upgrade the Flight Deck with an AI Copilot and synchronize the entire Hangar with live architectural context.
+- **Accomplished**:
+    - **Flight Deck Chat**: Replaced the static "Active Task" card with a **Persistent Chat Interface** (`task_chat_messages`).
+    - **Technical Copilot**: Implemented a "Senior Technical Architect" persona in `flight-deck-chat.ts` that assists with task execution (code snippets, debugging).
+    - **Live Context Pipeline**: Built `src/app/actions/context.ts` (`getSystemContext`) to auto-read `MEMORY.md`, `ARCHITECTURE.md`, and `MASTER_SPEC.md` at runtime.
+    - **Global Sync**: Injected this Live Context into both the **Flight Deck Chat** (Execution) and **Evolution Lab Advisor** (Strategy).
+    - **Auto-Ignition**: Configured the Flight Deck to automatically trigger an AI analysis ("Mission Briefing") when a task is engaged.
+    - **Logic Upgrades**: Added "Abort Mission" (Return to Backlog) logic to `useSprint.ts` and UI.
+- **Key Decisions**:
+    - **Live Read vs. Database Sync**: Decided to read markdown files directly using `fs/promises` rather than syncing them to a database. This ensures zero latency and always-up-to-date context without manual synchronization steps.
+    - **Auto-Ignition**: Using a hidden system message to trigger the AI analysis immediately upon engagement improves the "Copilot" feel.
+    - **Persistent Drafts**: Added `tasks_draft` JSONB to `evolutions` table to prevent data loss in the Evolution Lab interact.
+
+### Session: Deployment & Infrastructure Hardening
+- **Goal**: stabilize the Supabase database schema and resolve migration conflicts for a clean production deployment.
+- **Accomplished**:
+    - **Migration Repair**: Resolved version collisions (e.g., `20251230000700`) and "already exists" errors by making all migration scripts idempotent (`IF NOT EXISTS`, conditional policy creation).
+    - **Schema Visualization**: Successfully deployed 34 migration files, establishing a robust foundation for the `ai_crew`, `evolutions`, and `task_chat_messages` tables.
+    - **Constraint Fixes**: Updated strict `CHECK` constraints (document types) to `NOT VALID` to gracefully handle legacy data while enforcing rules for new entries.

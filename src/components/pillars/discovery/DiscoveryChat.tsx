@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useRef, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import { Send, Zap, Activity, Terminal, Trash2, Play, CheckCircle2, Sparkles } from 'lucide-react';
 import { ComplexitySelector, ComplexityLevel } from '@/components/ComplexitySelector';
+
+import { cn } from '@/lib/utils';
 
 interface DiscoveryChatProps {
     messages: { role: 'user' | 'model'; text: string; recommendation?: any }[];
@@ -14,9 +17,12 @@ interface DiscoveryChatProps {
     setComplexity: (val: ComplexityLevel) => void;
     onSend: (text: string) => void;
     onClear: () => void;
+    className?: string;
+    onToggleLeftDrawer?: () => void;
+    onToggleRightDrawer?: () => void;
 }
 
-export function DiscoveryChat({ messages, input, setInput, isProcessing, complexity, setComplexity, onSend, onClear }: DiscoveryChatProps) {
+export function DiscoveryChat({ messages, input, setInput, isProcessing, complexity, setComplexity, onSend, onClear, className, onToggleLeftDrawer, onToggleRightDrawer }: DiscoveryChatProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -36,14 +42,30 @@ export function DiscoveryChat({ messages, input, setInput, isProcessing, complex
         }
     };
 
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const toggleRightDrawer = () => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (params.get('mobile_view') === 'artifacts') {
+            params.delete('mobile_view');
+        } else {
+            params.set('mobile_view', 'artifacts');
+        }
+        router.replace(`?${params.toString()}`);
+    };
+
     return (
-        <div className="col-span-5 flex flex-col border-r border-zinc-800 bg-black relative overflow-hidden">
+        <div className={cn("flex flex-col border-r border-zinc-800 bg-black relative overflow-hidden", className)}>
             <header className="flex items-center justify-between p-3 border-b border-zinc-900 bg-zinc-950/50">
                 <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest pl-2">
-                    <Terminal className="h-4 w-4" /> Socratic Interface
+                    <Terminal className="h-4 w-4" />
+                    <span>Socratic Interface</span>
                 </div>
                 <div className="flex items-center gap-3">
-                    <ComplexitySelector value={complexity} onChange={setComplexity} />
+                    <div className="hidden lg:block">
+                        <ComplexitySelector value={complexity} onChange={setComplexity} />
+                    </div>
                     <button
                         onClick={onClear}
                         className="p-1.5 hover:bg-red-950/30 text-zinc-600 hover:text-red-500 rounded transition-colors group"

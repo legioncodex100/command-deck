@@ -54,6 +54,10 @@ export interface Profile {
     updated_at: string;
 }
 
+export interface ExtendedProfile extends Profile {
+    last_sign_in_at?: string;
+}
+
 export interface Invitation {
     id: string;
     email: string;
@@ -62,4 +66,17 @@ export interface Invitation {
     status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
     created_at: string;
     expires_at: string;
+}
+
+export type EvolutionStatus = 'IDEA' | 'PLANNED' | 'PUSHED' | 'COMPLETED';
+
+export interface Evolution {
+    id: string;
+    title: string;
+    description: string | null;
+    status: EvolutionStatus;
+    spec_content: string | null;
+    tasks_draft: { title: string, priority: 'P0' | 'P1' | 'P2' }[] | null;
+    created_at: string;
+    updated_at: string;
 }

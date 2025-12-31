@@ -2,27 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { Users, UserPlus, Shield, Mail, Search, Trash2, RefreshCw, Send } from "lucide-react";
-import { inviteCivilian, resendInvite, sendMagicLink, triggerPasswordReset } from "@/app/actions/admin";
+import { inviteCivilian, resendInvite, sendMagicLink, triggerPasswordReset, listCiviliansWithAuth } from "@/app/actions/admin";
 import { Sparkles, KeyRound } from "lucide-react";
 import { supabase } from "@/services/supabase";
-import { Profile } from "@/types/database";
+import { ExtendedProfile } from "@/types/database";
 
 export function HangarCivilians() {
     const [email, setEmail] = useState("");
     const [inviting, setInviting] = useState(false);
     const [status, setStatus] = useState("");
-    const [civilians, setCivilians] = useState<Profile[]>([]);
+    const [civilians, setCivilians] = useState<ExtendedProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [resendingEmail, setResendingEmail] = useState<string | null>(null);
 
     const loadCivilians = async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .order('created_at', { ascending: false });
+        const { data, error } = await listCiviliansWithAuth();
 
-        if (data) setCivilians(data as Profile[]);
+        if (data) setCivilians(data as ExtendedProfile[]);
+        if (error) console.error("Error loading civilians:", error);
         setLoading(false);
     };
 
@@ -133,11 +131,10 @@ export function HangarCivilians() {
 
                     {/* Table Header */}
                     <div className="grid grid-cols-12 px-4 py-2 border-b border-zinc-800/50 text-[10px] uppercase font-bold text-zinc-600">
-                        <div className="col-span-4">Identity</div>
-                        <div className="col-span-3">Codename / Name</div>
+                        <div className="col-span-5">Identity</div>
                         <div className="col-span-2">Role</div>
-                        <div className="col-span-2">Joined</div>
-                        <div className="col-span-1 text-right">Action</div>
+                        <div className="col-span-2">Last Seen</div>
+                        <div className="col-span-3 text-right">Action</div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto">
@@ -148,8 +145,8 @@ export function HangarCivilians() {
                         ) : (
                             civilians.map(profile => (
                                 <div key={profile.id} className="grid grid-cols-12 px-4 py-3 border-b border-zinc-800/30 items-center hover:bg-zinc-900/40 transition-colors group">
-                                    <div className="col-span-4 flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-xs overflow-hidden relative border border-zinc-700 shrink-0">
+                                    <div className="col-span-5 flex items-center gap-4">
+                                        <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-xs overflow-hidden relative border border-zinc-700 shrink-0">
                                             {profile.avatar_url ? (
                                                 <img
                                                     src={`${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`}
@@ -160,21 +157,17 @@ export function HangarCivilians() {
                                                 <span>{profile.email[0].toUpperCase()}</span>
                                             )}
                                         </div>
-                                        <div className="overflow-hidden min-w-0">
-                                            <div className="text-sm text-zinc-200 truncate">{profile.email}</div>
-                                            <div className="text-[10px] text-zinc-500 font-mono">{profile.id.slice(0, 8)}...</div>
-                                        </div>
-                                    </div>
-                                    <div className="col-span-3">
-                                        <div className="flex flex-col overflow-hidden">
-                                            <span className="text-sm text-zinc-300 truncate font-bold text-shadow-glow">
-                                                {profile.display_name || <span className="text-zinc-600 italic font-normal">Unknown</span>}
-                                            </span>
-                                            {profile.full_name && (
-                                                <span className="text-[10px] text-zinc-500 uppercase tracking-tight truncate">
-                                                    {profile.full_name}
-                                                </span>
-                                            )}
+                                        <div className="flex flex-col min-w-0">
+                                            {/* Full Name (Primary) */}
+                                            <div className="text-sm text-zinc-200 font-bold text-shadow-glow truncate">
+                                                {profile.full_name || <span className="text-zinc-600 italic font-normal">Unknown Civilian</span>}
+                                            </div>
+                                            {/* Codename (Secondary) */}
+                                            <div className="text-[10px] text-zinc-400 uppercase tracking-tight truncate font-mono">
+                                                {profile.display_name || "NO_CODENAME"}
+                                            </div>
+                                            {/* Email */}
+                                            <div className="text-[10px] text-zinc-500 font-mono truncate mt-0.5">{profile.email}</div>
                                         </div>
                                     </div>
                                     <div className="col-span-2">
@@ -186,9 +179,10 @@ export function HangarCivilians() {
                                         </span>
                                     </div>
                                     <div className="col-span-2 text-xs text-zinc-500 font-mono">
-                                        {new Date(profile.created_at).toLocaleDateString()}
+                                        {profile.last_sign_in_at ? new Date(profile.last_sign_in_at).toLocaleDateString() : <span className="text-zinc-700">-</span>}
+                                        {profile.last_sign_in_at && <div className="text-[9px] text-zinc-600">{new Date(profile.last_sign_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
                                     </div>
-                                    <div className="col-span-1 text-right flex items-center justify-end gap-1">
+                                    <div className="col-span-3 text-right flex items-center justify-end gap-1">
                                         {(!profile.full_name || !profile.display_name || profile.display_name.includes('@') || profile.display_name === profile.email.split('@')[0]) && (
                                             <button
                                                 onClick={async () => {
@@ -212,7 +206,7 @@ export function HangarCivilians() {
                                                 className="p-1.5 hover:bg-amber-950/30 text-zinc-600 hover:text-amber-500 rounded transition-colors group/fix"
                                                 title="Initialize Identity Protocol (Fix Missing Data)"
                                             >
-                                                <Shield className="h-4 w-4" />
+                                                <Shield className="h-3.5 w-3.5" />
                                             </button>
                                         )}
                                         <button
@@ -221,7 +215,7 @@ export function HangarCivilians() {
                                             title="Resend Invite"
                                             disabled={resendingEmail === profile.email}
                                         >
-                                            <Send className={`h-4 w-4 ${resendingEmail === profile.email ? 'animate-pulse opacity-50' : ''}`} />
+                                            <Send className={`h-3.5 w-3.5 ${resendingEmail === profile.email ? 'animate-pulse opacity-50' : ''}`} />
                                         </button>
                                         <button
                                             onClick={async () => {
@@ -234,7 +228,7 @@ export function HangarCivilians() {
                                             className="p-1.5 hover:bg-emerald-950/30 text-zinc-600 hover:text-emerald-400 rounded transition-colors"
                                             title="Send Magic Link (Passwordless Login)"
                                         >
-                                            <Sparkles className="h-4 w-4" />
+                                            <Sparkles className="h-3.5 w-3.5" />
                                         </button>
                                         <button
                                             onClick={async () => {
@@ -247,7 +241,7 @@ export function HangarCivilians() {
                                             className="p-1.5 hover:bg-amber-950/30 text-zinc-600 hover:text-amber-400 rounded transition-colors"
                                             title="Trigger Password Reset"
                                         >
-                                            <KeyRound className="h-4 w-4" />
+                                            <KeyRound className="h-3.5 w-3.5" />
                                         </button>
                                         <button
                                             onClick={async () => {
@@ -261,7 +255,7 @@ export function HangarCivilians() {
                                             className="p-1.5 hover:bg-red-950/30 text-zinc-600 hover:text-red-500 rounded transition-colors"
                                             title="Revoke Access"
                                         >
-                                            <Trash2 className="h-4 w-4" />
+                                            <Trash2 className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 </div>

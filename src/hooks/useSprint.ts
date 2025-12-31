@@ -1,214 +1,114 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/services/supabase";
-import { Task, Sprint, TaskStatus } from "@/types/planning";
+import { Task, Sprint } from "@/types/planning";
+
+// Define Task interface matching the DB
+interface DbTask {
+    id: string;
+    project_id: string;
+    title: string;
+    description: string | null;
+    priority: 'P0' | 'P1' | 'P2';
+    status: 'todo' | 'in_progress' | 'done';
+    created_at: string;
+}
 
 export function useSprint(projectId: string | null) {
-    const [backlogTasks, setBacklogTasks] = useState<Task[]>([]);
-    const [activeSprint, setActiveSprint] = useState<Sprint | null>(null);
+    const [tasks, setTasks] = useState<DbTask[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    // supabase is imported directly
 
-    // Load Sprint & Backlog
+    // Load Tasks
     const refresh = useCallback(async () => {
         if (!projectId) return;
 
         setIsLoading(true);
-        try {
-            // 1. Load Backlog
-            const { data: bData } = await supabase
-                .from('documents')
-                .select('content')
-                .eq('project_id', projectId)
-                .eq('type', 'BACKLOG')
-                .single();
+        const { data, error } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false });
 
-            if (bData?.content) {
-                const lines = bData.content.split('\n');
-                const parsed: Task[] = [];
-                let currentPhase = 'General';
-
-                lines.forEach((line: string) => {
-                    if (line.trim().startsWith('## ')) {
-                        currentPhase = line.replace('## ', '').trim();
-                    } else if (line.trim().startsWith('- [ ]')) {
-                        // Regex to extract: Title (ID) Priority
-                        // Example: - [ ] Implement Login (AUTH-001) P0
-                        const match = line.match(/- \[ \] (.*?) \((\w+-\d+|\w+)\) (P[0-3])/);
-                        const simpleMatch = line.match(/- \[ \] (.*)/);
-
-                        if (match) {
-                            parsed.push({
-                                id: match[2],
-                                title: match[1].trim(),
-                                priority: match[3] as any,
-                                status: 'TODO',
-                                phase: currentPhase
-                            });
-                        } else if (simpleMatch) {
-                            parsed.push({
-                                id: `TASK-${Math.floor(Math.random() * 100000)}`,
-                                title: simpleMatch[1].trim(),
-                                priority: 'P2',
-                                status: 'TODO',
-                                phase: currentPhase
-                            });
-                        }
-                    }
-                });
-                setBacklogTasks(parsed);
-            }
-
-            // 2. Load Active Sprint
-            const { data: sData } = await supabase
-                .from('documents')
-                .select('content')
-                .eq('project_id', projectId)
-                .eq('type', 'SPRINT')
-                .single();
-
-            if (sData?.content) {
-                try {
-                    const parsedSprint = JSON.parse(sData.content);
-                    setActiveSprint(parsedSprint);
-                } catch (e) {
-                    console.error("Failed to parse Sprint JSON", e);
-                }
-            } else {
-                setActiveSprint(null);
-            }
-
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setIsLoading(false);
+        if (!error && data) {
+            setTasks(data as DbTask[]);
+        } else if (error) {
+            console.error("Failed to load tasks", error);
         }
+        setIsLoading(false);
     }, [projectId]);
 
     useEffect(() => {
         refresh();
-    }, [refresh]);
 
-    // Actions
-    const startSprint = async (projectId: string, title: string, goal: string, start: Date, end: Date, taskIds: string[]) => {
-        if (!projectId) return;
+        // Subscribe to changes
+        const channel = supabase
+            .channel('tasks_channel')
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'tasks', filter: `project_id=eq.${projectId}` },
+                () => refresh()
+            )
+            .subscribe();
 
-        // Filter tasks from backlog
-        const selected = backlogTasks.filter(t => taskIds.includes(t.id));
-
-        const newSprint: Sprint = {
-            id: new Date().toISOString(),
-            title: title || `Sprint ${new Date().toLocaleDateString()}`,
-            status: 'ACTIVE',
-            tasks: selected.map(t => ({ ...t, status: 'TODO' })), // Set initial status
-            startedAt: new Date().toISOString()
+        return () => {
+            supabase.removeChannel(channel);
         };
-
-        // Save as JSON in the SPRINT doc
-        await supabase.from('documents').upsert({
-            project_id: projectId,
-            type: 'SPRINT',
-            content: JSON.stringify(newSprint, null, 2),
-            title: newSprint.title,
-            summary: goal || `Active Sprint with ${selected.length} tasks.`
-        }, { onConflict: 'project_id, type' });
-
-        setActiveSprint(newSprint);
-    };
-
-    const updateTaskStatus = async (taskId: string, newStatus: TaskStatus) => {
-        if (!activeSprint || !projectId) return;
-
-        const updatedTasks = activeSprint.tasks.map(t =>
-            t.id === taskId ? { ...t, status: newStatus } : t
-        );
-
-        const updatedSprint = { ...activeSprint, tasks: updatedTasks };
-
-        // Optimistic Update
-        setActiveSprint(updatedSprint);
-
-        // Persist
-        await supabase.from('documents').update({
-            content: JSON.stringify(updatedSprint, null, 2)
-        }).eq('project_id', projectId).eq('type', 'SPRINT');
-    };
-
-    const completeSprint = async () => {
-        if (!projectId) return;
-        // In a real app, we might archive this. For now, we just delete the SPRINT doc 
-        // or mark it completed. Let's delete it to "clear the board" for next batch.
-        await supabase.from('documents').delete().eq('project_id', projectId).eq('type', 'SPRINT');
-        setActiveSprint(null);
-    };
+    }, [refresh, projectId]);
 
     // Derived State
-    const sprintTasks = activeSprint?.tasks || [];
-    const todoTasks = sprintTasks.filter(t => t.status === 'TODO');
-    const activeTask = sprintTasks.find(t => t.status === 'IN_PROGRESS');
-    const doneTasks = sprintTasks.filter(t => t.status === 'DONE');
+    const todoTasks = tasks.filter(t => t.status === 'todo');
+    const activeTask = tasks.find(t => t.status === 'in_progress');
+    const doneTasks = tasks.filter(t => t.status === 'done');
 
-    // Mapped Actions
+    // Actions
     const startTask = async (taskId: string) => {
-        await updateTaskStatus(taskId, 'IN_PROGRESS');
+        // Enforce WIP limit: only 1 active task
+        if (activeTask) return;
+
+        // Optimistic update
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'in_progress' } : t));
+
+        await supabase.from('tasks').update({ status: 'in_progress' }).eq('id', taskId);
     };
 
     const completeTask = async (taskId: string) => {
-        await updateTaskStatus(taskId, 'DONE');
+        // Optimistic update
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'done' } : t));
+
+        await supabase.from('tasks').update({ status: 'done' }).eq('id', taskId);
     };
 
-    const createTask = async (task: Partial<Task>) => {
+    const stopTask = async (taskId: string) => {
+        // Only if it's the active task
+        if (activeTask && activeTask.id !== taskId) return;
+
+        // Optimistic update
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'todo' } : t));
+
+        await supabase.from('tasks').update({ status: 'todo' }).eq('id', taskId);
+    };
+
+    const createTask = async (task: { title: string, priority: 'P0' | 'P1' | 'P2' }) => {
         if (!projectId) return;
 
-        // 1. Append to Backlog Doc
-        const line = `\n- [ ] ${task.title} (TASK-${Math.floor(Math.random() * 10000)}) ${task.priority || 'P2'}`;
-
-        // Fetch current backlog to append
-        const { data } = await supabase.from('documents').select('content').eq('project_id', projectId).eq('type', 'BACKLOG').single();
-        const currentContent = data?.content || "# Backlog\n";
-
-        await supabase.from('documents').upsert({
+        await supabase.from('tasks').insert({
             project_id: projectId,
-            type: 'BACKLOG',
-            content: currentContent + line,
-            title: 'Backlog',
-            summary: 'Project Backlog'
-        }, { onConflict: 'project_id, type' });
-
-        // 2. If valid active sprint, also add it there for immediate feedback (Hotfix style)
-        if (activeSprint) {
-            const newTask: Task = {
-                id: `TASK-${Math.floor(Math.random() * 10000)}`,
-                title: task.title || "Untitled",
-                priority: (task.priority as any) || 'P2',
-                status: 'TODO',
-                phase: 'Ad-Hoc'
-            };
-            const updatedTasks = [...activeSprint.tasks, newTask];
-            const updatedSprint = { ...activeSprint, tasks: updatedTasks };
-            setActiveSprint(updatedSprint);
-            await supabase.from('documents').update({
-                content: JSON.stringify(updatedSprint, null, 2)
-            }).eq('project_id', projectId).eq('type', 'SPRINT');
-        } else {
-            // If no sprint, refresh backlog to show it (if we were falling back, but we aren't yet)
-            refresh();
-        }
+            title: task.title,
+            priority: task.priority,
+            status: 'todo'
+        });
+        // Subscription will trigger refresh
     };
 
     return {
-        activeSprint,
-        backlogTasks,
-        isLoading,
-        startSprint,
-        updateTaskStatus,
-        completeSprint,
-        refresh,
-        // New exports for HangarFlightDeck
         todoTasks,
         activeTask,
         doneTasks,
         startTask,
+        stopTask,
         completeTask,
-        createTask
+        createTask,
+        isLoading,
+        refresh
     };
 }

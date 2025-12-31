@@ -1,8 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, VT323 } from "next/font/google";
 import "./globals.css";
-import { ProjectProvider } from "@/hooks/useProject";
-import { DevModeProvider } from "@/hooks/DevModeContext";
+import { Providers } from "@/components/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,6 +22,13 @@ const vt323 = VT323({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#000000",
+};
+
 export const metadata: Metadata = {
   title: "Command Deck",
   description: "Architect-Pilot Dashboard",
@@ -38,11 +44,9 @@ export default function RootLayout({
       <body
         className="antialiased h-full flex bg-background text-foreground"
       >
-        <ProjectProvider>
-          <DevModeProvider>
-            {children}
-          </DevModeProvider>
-        </ProjectProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

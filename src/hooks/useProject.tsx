@@ -51,29 +51,38 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             return;
         }
         setIsLoading(true);
-        const { data } = await supabase
-            .from("projects")
-            .select("*")
-            .order("created_at", { ascending: false });
 
-        if (data) {
-            // STEALTH PROTOCOL: Hide Hangar Core from standard project list
-            const visibleProjects = data.filter(p => p.id !== 'c0de0000-0000-0000-0000-000000000000');
-            setProjects(visibleProjects);
+        try {
+            const { data, error } = await supabase
+                .from("projects")
+                .select("*")
+                .order("created_at", { ascending: false });
 
-            // Restore active project from storage or default to the most recent one
-            const storedId = localStorage.getItem("command_deck_active_project");
-            const isValidStored = visibleProjects.find(p => p.id === storedId);
-
-            if (isValidStored) {
-                setActiveProjectId(isValidStored.id);
-            } else if (visibleProjects.length > 0) {
-                setActiveProjectId(visibleProjects[0].id);
-            } else {
-                // No projects exist, handled by UI generally, or can create one here if needed
+            if (error) {
+                console.error("Supabase Error fetching projects:", error);
+                throw error;
             }
+
+            if (data) {
+                // STEALTH PROTOCOL: Hide Hangar Core from standard project list
+                const visibleProjects = data.filter(p => p.id !== 'c0de0000-0000-0000-0000-000000000000');
+                setProjects(visibleProjects);
+
+                // Restore active project from storage or default to the most recent one
+                const storedId = localStorage.getItem("command_deck_active_project");
+                const isValidStored = visibleProjects.find(p => p.id === storedId);
+
+                if (isValidStored) {
+                    setActiveProjectId(isValidStored.id);
+                } else if (visibleProjects.length > 0) {
+                    setActiveProjectId(visibleProjects[0].id);
+                }
+            }
+        } catch (err) {
+            console.error("CRITICAL: fetchProjects failed to execute.", err);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }, [user]);
 
     // Fetch projects on mount/user change

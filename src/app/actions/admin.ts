@@ -133,4 +133,52 @@ export async function triggerPasswordReset(email: string) {
     return { success: true };
 }
 
+
+export async function listCiviliansWithAuth() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return { error: "Unauthorized" };
+
+    // Check if requester is Commander
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile || profile.role !== 'COMMANDER') {
+        return { error: "Access Denied" };
+    }
+
+    // 1. Fetch all profiles
+    const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (profileError) return { error: profileError.message };
+
+    // 2. Fetch all Auth Users (to get last_sign_in_at)
+    const adminClient = createAdminClient();
+    const { data: { users }, error: authError } = await adminClient.auth.admin.listUsers();
+
+    if (authError) {
+        console.error("Auth Fetch Error:", authError);
+        // Fallback to just profiles if auth fetch fails
+        return { data: profiles };
+    }
+
+    // 3. Merge Data
+    const mergedData = profiles.map(p => {
+        const authUser = users.find(u => u.id === p.id);
+        return {
+            ...p,
+            last_sign_in_at: authUser?.last_sign_in_at || null
+        };
+    });
+
+    return { data: mergedData };
+}
+
 export const resendInvite = inviteCivilian;

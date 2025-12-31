@@ -11,6 +11,9 @@ drop policy if exists "Users can insert their own project sessions" on substruct
 drop policy if exists "Users can update their own project sessions" on substructure_sessions;
 
 -- Create permissive policies for authenticated users
+-- Create permissive policies for authenticated users
+drop policy if exists "Enable all access for authenticated users" on substructure_sessions;
+
 create policy "Enable all access for authenticated users"
   on substructure_sessions
   for all

@@ -23,20 +23,28 @@ create table if not exists public.ai_crew (
 alter table public.ai_crew enable row level security;
 
 -- Policies (Commanders can do everything)
-create policy "Commanders can view all crew"
-  on public.ai_crew for select
-  to authenticated
-  using (true);
+-- Policies (Commanders can do everything)
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'ai_crew' and policyname = 'Commanders can view all crew') then
+    create policy "Commanders can view all crew"
+      on public.ai_crew for select
+      to authenticated
+      using (true);
+  end if;
 
-create policy "Commanders can manage crew"
-  on public.ai_crew for all
-  to authenticated
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('COMMANDER', 'PILOT') 
-    )
-  );
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'ai_crew' and policyname = 'Commanders can manage crew') then
+    create policy "Commanders can manage crew"
+      on public.ai_crew for all
+      to authenticated
+      using (
+        exists (
+          select 1 from public.profiles
+          where id = auth.uid() and role in ('COMMANDER', 'PILOT') 
+        )
+      );
+  end if;
+end $$;
 
 -- SEED DATA: Star Trek Personnel (TNG, DS9, VOY)
 -- Note: Using 'gemini-1.5-flash' as default for speed, can be tuned later.

@@ -59,6 +59,12 @@ To prevent context fragmentation, every **Relay Artifact** (`RELAY_X.md`) must b
 *   **Detection**: `ripple.ts` compares `updated_at` timestamps of upstream artifacts vs. downstream artifacts.
 *   **Action**: If Upstream > Downstream, mark Downstream as `[STALE]`.
 
+### The Pillar Shell (Standard Layout)
+To ensure consistent behavior across Mobile, Tablet, and Desktop, all Pillars must be wrapped in the `<StandardPillarLayout />` component.
+*   **Mobile**: Renders `Main Content` (Chat) full-width. `Left` and `Right` panels become slide-out drawers fixed `inset-0`.
+*   **Desktop**: Renders a strict 12-column grid (3-6-3).
+*   **State**: Controlled via URL Search Params (`?mobile_view=roadmap|artifacts`) to prevent state de-sync.
+
 ## 5. The Integration Bridge (Pillar G)
 Acts as the physical manifestation of the project.
 *   **Sync Bridge (Host)**: Pushes virtual Supabase documents to the local `/docs` filesystem.

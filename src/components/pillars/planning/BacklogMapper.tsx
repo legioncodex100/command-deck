@@ -12,7 +12,7 @@ interface BacklogMapperProps {
     onToggleSelect?: (id: string) => void;
 }
 
-export function BacklogMapper({ tasks, isGenerating, onGenerate, selectedIds = [], onToggleSelect }: BacklogMapperProps) {
+export function BacklogMapper({ tasks = [], isGenerating, onGenerate, selectedIds = [], onToggleSelect }: BacklogMapperProps) {
     return (
         <div className="h-full flex flex-col bg-[#050505] relative overflow-hidden">
             {/* Header */}

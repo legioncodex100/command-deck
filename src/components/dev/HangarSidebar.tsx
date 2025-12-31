@@ -11,13 +11,15 @@ import {
     LogOut, // Exit
     Terminal,
     Users, // Civilians
-    Bot // AI Crew
+    Bot, // AI Crew
+    Smartphone // Simulator
 } from 'lucide-react';
 
 const HANGAR_ITEMS = [
-    { label: 'Evolution Lab', href: '/hangar', icon: GitBranch }, // Default view
+    { label: 'Evolution Lab', href: '/hangar/evolution', icon: GitBranch }, // Strategic Command
     { label: 'Flight Deck', href: '/hangar/flight', icon: Layout },
     { label: 'Synthetic Division', href: '/hangar/ai', icon: Bot },
+    { label: 'Device Simulator', href: '/hangar/simulator', icon: Smartphone },
     { label: 'Civilian Registry', href: '/hangar/civilians', icon: Users },
     { label: 'Maintenance Bay', href: '/hangar/maintenance', icon: Activity },
 ];
