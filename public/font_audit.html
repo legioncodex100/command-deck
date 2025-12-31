@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font Usage Audit - Command Deck</title>
+    <!-- Import VT323 -->
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <!-- Import Geist Mono equivalent (Roboto Mono as proxy for preview) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #10b981;
+            font-family: monospace;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #10b981;
+            padding: 20px;
+            position: relative;
+        }
+
+        .annotation {
+            display: inline-block;
+            background: #f43f5e;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 8px;
+            font-family: sans-serif;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #10b981;
+        }
+
+        /* Font Classes mimicking app */
+        .font-vt323 {
+            font-family: "VT323", monospace;
+        }
+
+        .font-geist-mono {
+            font-family: "Roboto Mono", monospace;
+            /* Proxy for Geist */
+        }
+
+        /* Element Styles */
+        h1 {
+            font-size: 40px;
+            margin: 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        h2 {
+            font-size: 32px;
+            margin: 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        p {
+            font-size: 14px;
+            opacity: 0.8;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .input-mock {
+            background: rgba(16, 185, 129, 0.05);
+            border-bottom: 2px solid #064e3b;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        .btn-mock {
+            border: 1px solid #064e3b;
+            padding: 15px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        .link-mock {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #065f46;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 style="color:white; font-family: sans-serif; border-bottom: 2px solid white; padding-bottom:10px;">Current
+            Font Architecture</h2>
+
+        <div class="section">
+            <span class="annotation">VT323</span>
+            <span style="color: #666; font-family: sans-serif; font-size: 12px;">(Currently applied globally via
+                wrapper)</span>
+            <br><br>
+
+            <!-- Main Header -->
+            <div style="margin-bottom: 30px;">
+                <span class="annotation">H1 Header</span>
+                <span class="font-vt323" style="font-size: 30px;">COMMAND YOUR CODEBASE</span>
+            </div>
+
+            <!-- Branding -->
+            <div style="margin-bottom: 30px;">
+                <span class="annotation">Logo Title</span>
+                <span class="font-vt323" style="font-size: 36px; letter-spacing: 0.2em;">COMMAND_DECK</span>
+            </div>
+
+            <!-- Subtitle -->
+            <div style="margin-bottom: 30px;">
+                <span class="annotation">Subtitle</span>
+                <span class="font-vt323" style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">THE
+                    OPERATING SYSTEM FOR HIGH-VELOCITY ENGINEERING TEAMS.</span>
+            </div>
+
+            <!-- Input -->
+            <div style="margin-bottom: 30px;">
+                <span class="annotation">Input Field</span>
+                <div class="input-mock font-vt323">
+                    user@system.com
+                </div>
+            </div>
+
+            <!-- Button -->
+            <div style="margin-bottom: 30px;">
+                <span class="annotation">Primary Button</span>
+                <div class="btn-mock font-vt323">
+                    REQUEST ACCESS
+                </div>
+            </div>
+
+            <!-- Footer Link -->
+            <div style="margin-bottom: 30px;">
+                <span class="annotation">Footer Link</span>
+                <a href="#" class="link-mock font-vt323">
+                    [ ALREADY HAVE CLEARANCE? LOGIN ]
+                </a>
+            </div>
+        </div>
+
+        <div style="background: #111; padding: 20px; border-radius: 8px;">
+            <strong style="color: white; font-family: sans-serif;">Analysis:</strong>
+            <p style="font-family: sans-serif; text-transform: none; color: #ccc;">
+                Currently, EVERY text element on the page is inheriting the <strong>VT323</strong> pixel font because of
+                the global class application.
+                <br><br>
+                This creates a very unified "retro" look, but renders small text (like the footer link and subtitle)
+                harder to read and less "modern technical" than a font like Geist Mono or Roboto Mono would.
+            </p>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

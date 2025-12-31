@@ -83,7 +83,7 @@ export function Sidebar() {
 
     return (
         <aside
-            className="fixed left-0 top-0 z-[60] h-screen w-16 border-r border-zinc-800 bg-[#000000] flex flex-col items-center py-4 transition-all hover:w-64 group overflow-visible"
+            className="h-screen w-16 border-r border-zinc-800 bg-[#000000] flex flex-col items-center py-4 transition-all hover:w-64 group overflow-visible shrink-0 z-[60]"
             style={{ fontFamily: 'var(--font-geist-mono)' }}
         >
 

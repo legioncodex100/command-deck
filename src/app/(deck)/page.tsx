@@ -1,7 +1,5 @@
-"use client";
-
-import CommandDeckIndex from "@/index";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <CommandDeckIndex />;
+  redirect("/dashboard");
 }

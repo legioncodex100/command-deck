@@ -3,6 +3,7 @@
 import { useProject } from "@/hooks/useProject";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { CommandDeckLogo } from "@/components/branding/CommandDeckLogo";
 
 const ROUTE_NAMES: Record<string, string> = {
     '/dashboard': 'Dashboard',
@@ -33,14 +34,20 @@ export function GlobalHeader() {
             <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider mb-1">
                 Command Deck <span className="text-zinc-700">/</span> {formattedPage}
             </div>
-            <div className="flex flex-col lg:flex-row lg:items-baseline justify-between gap-2 lg:gap-0">
-                <h1 className="text-2xl font-bold tracking-tight text-white">
-                    {formattedPage}
-                </h1>
-                <p className="w-fit text-emerald-500 font-mono text-xs flex items-center gap-2 bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    {activeProject?.name || "No Active Project"}
-                </p>
+            <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight text-white">
+                        {formattedPage}
+                    </h1>
+                    <p className="w-fit text-emerald-500 font-mono text-xs flex items-center gap-2 bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        {activeProject?.name || "No Active Project"}
+                    </p>
+                </div>
+
+                <div className="hidden lg:block h-12 w-20 text-emerald-500/80 hover:text-emerald-400 transition-colors">
+                    <CommandDeckLogo showText={false} />
+                </div>
             </div>
         </header>
     );

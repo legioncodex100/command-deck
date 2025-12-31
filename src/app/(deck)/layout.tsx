@@ -23,18 +23,22 @@ export default async function DeckLayout({
 
     return (
         <DevModeOverlay>
-            <div className="hidden lg:block">
-                <Sidebar />
-            </div>
-            <MobileNavbar />
-            <main className="flex-1 lg:ml-16 h-[calc(100dvh-6rem)] lg:h-screen w-full lg:w-[calc(100vw-4rem)] bg-black p-4 md:p-6 overflow-hidden flex flex-col mb-24 lg:mb-0">
-                <div className="w-full h-full flex flex-col bg-[#0a0a0a] rounded-xl border border-zinc-800 shadow-2xl overflow-hidden relative">
-                    <GlobalHeader />
-                    <div className="flex-1 overflow-hidden min-h-0 relative">
-                        {children}
-                    </div>
+            <div className="flex h-screen w-full bg-black overflow-hidden">
+                <div className="hidden lg:block shrink-0">
+                    <Sidebar />
                 </div>
-            </main>
+                <div className="flex-1 flex flex-col min-w-0">
+                    <MobileNavbar />
+                    <main className="flex-1 bg-black p-4 md:p-6 overflow-hidden flex flex-col mb-24 lg:mb-0">
+                        <div className="w-full h-full flex flex-col bg-[#0a0a0a] rounded-xl border border-zinc-800 shadow-2xl overflow-hidden relative">
+                            <GlobalHeader />
+                            <div className="flex-1 overflow-hidden min-h-0 relative">
+                                {children}
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            </div>
         </DevModeOverlay>
     );
 }

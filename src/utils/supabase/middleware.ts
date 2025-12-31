@@ -49,18 +49,19 @@ export const updateSession = async (request: NextRequest) => {
 
         const isLogin = request.nextUrl.pathname.startsWith('/login');
         const isAuth = request.nextUrl.pathname.startsWith('/auth');
+        const isRoot = request.nextUrl.pathname === '/';
 
-        // 2. Redirect Unauthenticated Users to Login
-        if (!user && !isLogin && !isAuth) {
+        // 2. Redirect Unauthenticated Users to Login (Protect everything else)
+        if (!user && !isLogin && !isAuth && !isRoot) {
             const url = request.nextUrl.clone();
             url.pathname = '/login';
             return NextResponse.redirect(url);
         }
 
-        // 3. Redirect Authenticated Users AWAY from Login (to home)
-        if (user && isLogin) {
+        // 3. Redirect Authenticated Users AWAY from Login/Root (to dashboard)
+        if (user && (isLogin || isRoot)) {
             const url = request.nextUrl.clone();
-            url.pathname = '/';
+            url.pathname = '/dashboard';
             return NextResponse.redirect(url);
         }
 

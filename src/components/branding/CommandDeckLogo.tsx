@@ -41,6 +41,8 @@ export function CommandDeckLogo({ className, showText = true }: { className?: st
                 viewBox="0 0 265.79 151.72"
                 preserveAspectRatio="xMidYMid meet"
                 fill="currentColor"
+                stroke="currentColor"
+                strokeWidth="1.5"
                 className="h-full w-auto drop-shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pixel-rez"
                 xmlns="http://www.w3.org/2000/svg"
             >

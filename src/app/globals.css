@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 @theme {
   --color-border: var(--border);
   --color-input: var(--input);
@@ -38,10 +39,6 @@
     height: -webkit-fill-available;
   }
 
-  /* Universal Font Reset - Nuclear Option */
-  * {
-    font-family: var(--font-geist-mono), monospace !important;
-  }
 
   body {
     @apply bg-background text-foreground antialiased;
@@ -56,6 +53,10 @@
 }
 
 @layer utilities {
+  .font-vt323-force {
+    font-family: "VT323", monospace !important;
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;

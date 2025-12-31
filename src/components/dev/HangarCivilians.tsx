@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, UserPlus, Shield, Mail, Trash2, RefreshCw, Send, Sparkles, KeyRound } from "lucide-react";
+import { Users, UserPlus, Shield, Mail, Trash2, RefreshCw, Send, Sparkles, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
 import { inviteCivilian, resendInvite, sendMagicLink, triggerPasswordReset, listCiviliansWithAuth } from "@/app/actions/admin";
 import { ExtendedProfile } from "@/types/database";
 import StandardPillarLayout from "../pillars/StandardPillarLayout";
@@ -15,6 +15,7 @@ export function HangarCivilians() {
     const [civilians, setCivilians] = useState<ExtendedProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [resendingEmail, setResendingEmail] = useState<string | null>(null);
+    const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
     const loadCivilians = async () => {
         setLoading(true);
@@ -114,13 +115,6 @@ export function HangarCivilians() {
             />
             <PillarBody>
                 {/* Table Header */}
-                <div className="grid grid-cols-12 px-4 py-2 border-b border-zinc-800/50 text-[10px] uppercase font-bold text-zinc-600 shrink-0">
-                    <div className="col-span-5">Identity</div>
-                    <div className="col-span-2">Role</div>
-                    <div className="col-span-2 hidden md:block">Last Seen</div>
-                    <div className="col-span-5 md:col-span-3 text-right">Action</div>
-                </div>
-
                 <div className="flex-1 overflow-y-auto">
                     {loading ? (
                         <div className="p-8 text-center text-zinc-600 text-xs animate-pulse">Scanning database...</div>
@@ -128,98 +122,124 @@ export function HangarCivilians() {
                         <div className="p-8 text-center text-zinc-700 text-xs italic">No entries found. Start recruiting.</div>
                     ) : (
                         civilians.map(profile => (
-                            <div key={profile.id} className="grid grid-cols-12 px-4 py-3 border-b border-zinc-800/30 items-center hover:bg-zinc-900/40 transition-colors group">
-                                <div className="col-span-5 flex items-center gap-4">
-                                    <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-xs overflow-hidden relative border border-zinc-700 shrink-0">
-                                        {profile.avatar_url ? (
-                                            <img
-                                                src={`${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`}
-                                                alt={profile.display_name || "Avatar"}
-                                                className="h-full w-full object-cover"
-                                            />
+                            <div key={profile.id} className="border-b border-zinc-800/30 bg-zinc-900/10 hover:bg-zinc-900/40 transition-colors">
+                                <div
+                                    className="flex items-center justify-between p-4 cursor-pointer select-none"
+                                    onClick={() => setExpandedUser(expandedUser === profile.id ? null : profile.id)}
+                                >
+                                    <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                                        {/* Avatar */}
+                                        <div className="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-xs overflow-hidden relative border border-zinc-700 shrink-0">
+                                            {profile.avatar_url ? (
+                                                <img
+                                                    src={`${profile.avatar_url}?t=${new Date(profile.updated_at).getTime()}`}
+                                                    alt={profile.display_name || "Avatar"}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : (
+                                                <span>{profile.email[0].toUpperCase()}</span>
+                                            )}
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm text-zinc-200 font-bold truncate">
+                                                    {profile.full_name || <span className="text-zinc-600 italic font-normal">Unknown</span>}
+                                                </span>
+                                                {profile.role === 'COMMANDER' && <Shield className="h-3 w-3 text-amber-500" />}
+                                            </div>
+                                            <div className="text-[10px] text-zinc-500 font-mono truncate">{profile.email}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Side: Role & Toggle */}
+                                    <div className="flex items-center gap-3 shrink-0 pl-2">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${profile.role === 'COMMANDER'
+                                            ? 'bg-amber-950/30 text-amber-500 border-amber-900/50'
+                                            : 'bg-emerald-950/30 text-emerald-500 border-emerald-900/50'
+                                            }`}>
+                                            {profile.role?.substring(0, 3)}
+                                        </span>
+                                        {expandedUser === profile.id ? (
+                                            <ChevronUp className="h-4 w-4 text-zinc-500" />
                                         ) : (
-                                            <span>{profile.email[0].toUpperCase()}</span>
+                                            <ChevronDown className="h-4 w-4 text-zinc-500" />
                                         )}
                                     </div>
-                                    <div className="flex flex-col min-w-0">
-                                        <div className="text-xs md:text-sm text-zinc-200 font-bold text-shadow-glow truncate">
-                                            {profile.full_name || <span className="text-zinc-600 italic font-normal">Unknown</span>}
+                                </div>
+
+                                {/* Expanded Content */}
+                                {expandedUser === profile.id && (
+                                    <div className="px-4 pb-4 pt-0 animate-in slide-in-from-top-1 fade-in duration-200">
+                                        <div className="bg-zinc-950/50 border border-zinc-800/50 rounded-lg p-2 flex items-center justify-between gap-2 overflow-x-auto">
+
+                                            <div className="text-[10px] text-zinc-600 font-mono pl-2">
+                                                Active: {profile.last_sign_in_at ? new Date(profile.last_sign_in_at).toLocaleDateString() : 'Never'}
+                                            </div>
+
+                                            <div className="flex items-center gap-1">
+                                                {(!profile.full_name || !profile.display_name || profile.display_name.includes('@') || profile.display_name === profile.email.split('@')[0]) && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (!confirm("Auto-generate identity?")) return;
+                                                            import("@/utils/generators").then(async (m) => {
+                                                                const newCode = m.generateCodename();
+                                                                const derivedName = profile.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                                                const { error } = await supabase.from('profiles').update({ display_name: newCode, full_name: derivedName }).eq('id', profile.id);
+                                                                if (error) alert("Error: " + error.message); else loadCivilians();
+                                                            });
+                                                        }}
+                                                        className="p-2 hover:bg-amber-950/30 text-zinc-400 hover:text-amber-500 rounded transition-colors"
+                                                        title="Generate Identity"
+                                                    >
+                                                        <Shield className="h-4 w-4" />
+                                                    </button>
+                                                )}
+
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleResend(profile.email); }}
+                                                    className="p-2 hover:bg-emerald-950/30 text-zinc-400 hover:text-emerald-500 rounded transition-colors"
+                                                    title="Resend Invite"
+                                                >
+                                                    <Send className="h-4 w-4" />
+                                                </button>
+
+                                                <button
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm(`Send MAGIC LINK to ${profile.email}?`)) {
+                                                            const res = await sendMagicLink(profile.email);
+                                                            if (res.error) alert("Error: " + res.error); else alert("Magic Link sent.");
+                                                        }
+                                                    }}
+                                                    className="p-2 hover:bg-emerald-950/30 text-zinc-400 hover:text-emerald-400 rounded transition-colors"
+                                                    title="Send Magic Link"
+                                                >
+                                                    <Sparkles className="h-4 w-4" />
+                                                </button>
+
+                                                <div className="w-px h-6 bg-zinc-800 mx-1" />
+
+                                                <button
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm(`REVOKE ACCESS for ${profile.email}?`)) {
+                                                            const { deleteUser } = await import("@/app/actions/admin");
+                                                            const res = await deleteUser(profile.id);
+                                                            if (res?.error) alert("Error: " + res.error); else loadCivilians();
+                                                        }
+                                                    }}
+                                                    className="p-2 hover:bg-red-950/30 text-zinc-400 hover:text-red-500 rounded transition-colors"
+                                                    title="Revoke Access"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="text-[10px] text-zinc-400 uppercase tracking-tight truncate font-mono hidden md:block">
-                                            {profile.display_name || "NO_CODENAME"}
-                                        </div>
-                                        <div className="text-[9px] md:text-[10px] text-zinc-500 font-mono truncate mt-0.5">{profile.email}</div>
                                     </div>
-                                </div>
-                                <div className="col-span-2">
-                                    <span className={`px-1.5 py-0.5 md:px-2 rounded text-[9px] md:text-[10px] font-bold border ${profile.role === 'COMMANDER'
-                                        ? 'bg-amber-950/30 text-amber-500 border-amber-900/50'
-                                        : 'bg-emerald-950/30 text-emerald-500 border-emerald-900/50'
-                                        }`}>
-                                        {profile.role?.substring(0, 3)}
-                                    </span>
-                                </div>
-                                <div className="col-span-2 text-xs text-zinc-500 font-mono hidden md:block">
-                                    {profile.last_sign_in_at ? new Date(profile.last_sign_in_at).toLocaleDateString() : <span className="text-zinc-700">-</span>}
-                                </div>
-                                <div className="col-span-5 md:col-span-3 text-right flex items-center justify-end gap-1">
-                                    {(!profile.full_name || !profile.display_name || profile.display_name.includes('@') || profile.display_name === profile.email.split('@')[0]) && (
-                                        <button
-                                            onClick={async () => {
-                                                if (!confirm("Auto-generate identity for this operative?")) return;
-                                                const { generateCodename } = await import("@/utils/generators");
-                                                const newCode = generateCodename();
-                                                const derivedName = profile.email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-                                                const { error } = await supabase
-                                                    .from('profiles')
-                                                    .update({
-                                                        display_name: newCode,
-                                                        full_name: derivedName
-                                                    })
-                                                    .eq('id', profile.id);
-
-                                                if (error) alert("Error: " + error.message);
-                                                else loadCivilians();
-                                            }}
-                                            className="p-1.5 hover:bg-amber-950/30 text-zinc-600 hover:text-amber-500 rounded transition-colors group/fix"
-                                        >
-                                            <Shield className="h-3.5 w-3.5" />
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => handleResend(profile.email)}
-                                        className="p-1.5 hover:bg-emerald-950/30 text-zinc-600 hover:text-emerald-500 rounded transition-colors"
-                                        disabled={resendingEmail === profile.email}
-                                    >
-                                        <Send className={`h-3.5 w-3.5 ${resendingEmail === profile.email ? 'animate-pulse opacity-50' : ''}`} />
-                                    </button>
-                                    <button
-                                        onClick={async () => {
-                                            if (confirm(`Send MAGIC LINK to ${profile.email}?`)) {
-                                                const res = await sendMagicLink(profile.email);
-                                                if (res.error) alert("Error: " + res.error);
-                                                else alert("Magic Link sent securely.");
-                                            }
-                                        }}
-                                        className="p-1.5 hover:bg-emerald-950/30 text-zinc-600 hover:text-emerald-400 rounded transition-colors"
-                                    >
-                                        <Sparkles className="h-3.5 w-3.5" />
-                                    </button>
-                                    <button
-                                        onClick={async () => {
-                                            if (confirm(`REVOKE ACCESS for ${profile.email}? This cannot be undone.`)) {
-                                                const { deleteUser } = await import("@/app/actions/admin");
-                                                const res = await deleteUser(profile.id);
-                                                if (res?.error) alert("Error: " + res.error);
-                                                else loadCivilians();
-                                            }
-                                        }}
-                                        className="p-1.5 hover:bg-red-950/30 text-zinc-600 hover:text-red-500 rounded transition-colors"
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
+                                )}
                             </div>
                         ))
                     )}

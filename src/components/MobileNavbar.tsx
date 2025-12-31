@@ -208,9 +208,9 @@ export function MobileNavbar({ mode = 'deck' }: MobileNavbarProps) {
                 {/* Center: Menu Toggle */}
                 <button
                     onClick={() => setIsMenuOpen(true)}
-                    className="flex flex-col items-center justify-center -mt-8 h-16 w-16 bg-zinc-900 border border-zinc-700 rounded-full shadow-lg shadow-black/50 hover:bg-zinc-800 transition-all active:scale-90"
+                    className="flex flex-col items-center justify-center -mt-8 h-16 w-16 bg-black border border-zinc-700 rounded-full shadow-lg shadow-black/50 hover:bg-zinc-900 transition-all active:scale-90"
                 >
-                    <CommandDeckLogo showText={false} className="w-full h-full text-emerald-500 p-3.5" />
+                    <CommandDeckLogo showText={false} className="w-full h-full text-emerald-500 p-2.5" />
                 </button>
 
                 {/* Right Action (Tools) */}
@@ -472,7 +472,7 @@ export function MobileNavbar({ mode = 'deck' }: MobileNavbarProps) {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <Link
-                                    href="/settings"
+                                    href="/profile"
                                     onClick={() => setIsMenuOpen(false)}
                                     className="flex items-center justify-center gap-2 p-3 rounded-xl border border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all font-bold tracking-wider text-xs uppercase"
                                 >
