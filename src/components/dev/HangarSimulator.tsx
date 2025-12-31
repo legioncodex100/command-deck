@@ -200,34 +200,7 @@ export function HangarSimulator() {
                         )}
                     </div>
 
-                    {/* Simulated Soft Keyboard */}
-                    <div className={cn(
-                        "w-full bg-zinc-900 border-t border-zinc-800 transition-all duration-300 ease-in-out shrink-0",
-                        showKeyboard ? "h-[35%]" : "h-0"
-                    )}>
-                        {showKeyboard && (
-                            <div className="w-full h-full flex flex-col p-2 gap-1 animate-in slide-in-from-bottom duration-300">
-                                <div className="h-8 bg-zinc-800 rounded px-4 flex items-center justify-between text-zinc-500 text-xs">
-                                    <span>Suggested 1</span>
-                                    <span>Suggested 2</span>
-                                    <span>Suggested 3</span>
-                                </div>
-                                <div className="flex-1 bg-zinc-800/50 rounded grid grid-rows-4 gap-1 p-1">
-                                    {/* Visual Mock of Keys */}
-                                    <div className="row-span-3 bg-zinc-800/30 rounded flex items-center justify-center text-zinc-600 font-mono text-sm tracking-widest uppercase">
-                                        [ Q W E R T Y U I O P ]<br />
-                                        [ A S D F G H J K L ]<br />
-                                        [ Z X C V B N M ]
-                                    </div>
-                                    <div className="flex gap-1 h-full">
-                                        <div className="w-1/4 bg-zinc-700/50 rounded" />
-                                        <div className="flex-1 bg-zinc-700 rounded" />
-                                        <div className="w-1/4 bg-emerald-600/20 rounded flex items-center justify-center text-emerald-500 font-bold text-[10px]">GO</div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+
                 </div>
 
                 <div className="absolute bottom-4 left-4 text-[10px] text-zinc-600 font-mono">
