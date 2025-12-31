@@ -26,15 +26,18 @@ export function HangarSimulator() {
     const [scale, setScale] = useState(0.75); // Start at 75% to fit most screens
     const [url, setUrl] = useState('/'); // Default to dashboard root
     const [refreshKey, setRefreshKey] = useState(0);
+    const [showAddressBar, setShowAddressBar] = useState(false);
 
     const isLandscape = orientation === 'landscape';
     const effectiveWidth = isLandscape ? selectedDevice.height : selectedDevice.width;
     const effectiveHeight = isLandscape ? selectedDevice.width : selectedDevice.height;
 
     return (
+
         <div className="h-full flex flex-col bg-[#050505]">
             {/* Toolbar */}
             <div className="h-14 border-b border-zinc-900 bg-black/80 flex items-center justify-between px-6 shrink-0">
+                {/* ... existing header content ... */}
                 <div className="flex items-center gap-4">
                     <div className="h-8 w-8 bg-zinc-900 rounded flex items-center justify-center border border-zinc-800">
                         <Smartphone className="h-5 w-5 text-emerald-500" />
@@ -67,6 +70,18 @@ export function HangarSimulator() {
                     </div>
 
                     <div className="h-6 w-px bg-zinc-800" />
+
+                    {/* Address Bar Toggle */}
+                    <button
+                        onClick={() => setShowAddressBar(prev => !prev)}
+                        className={cn(
+                            "p-2 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors flex items-center gap-2",
+                            showAddressBar && "bg-zinc-800 text-emerald-400"
+                        )}
+                        title="Toggle Browser Address Bar"
+                    >
+                        <div className="h-3 w-full border-t-2 border-current rounded-t-sm" />
+                    </button>
 
                     {/* Orientation */}
                     <button
@@ -102,7 +117,7 @@ export function HangarSimulator() {
             <div className="flex-1 bg-zinc-950 overflow-hidden relative flex items-center justify-center p-10 bg-[radial-gradient(#1a1a1a_1px,transparent_1px)] [background-size:16px_16px]">
 
                 <div
-                    className="relative bg-black transition-all duration-300 ease-out shadow-2xl overflow-hidden border-8 border-zinc-900 rounded-[2rem]"
+                    className="relative bg-black transition-all duration-300 ease-out shadow-2xl overflow-hidden border-8 border-zinc-900 rounded-[2rem] flex flex-col"
                     style={{
                         width: effectiveWidth,
                         height: effectiveHeight,
@@ -113,10 +128,20 @@ export function HangarSimulator() {
                     {/* Device Header/Notch Simulation (Just visual flair) */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-xl z-20 pointer-events-none" />
 
+                    {/* Simulated Mobile Address Bar */}
+                    {showAddressBar && (
+                        <div className="shrink-0 bg-zinc-800 h-14 flex items-center px-3 gap-2 border-b border-zinc-700 z-10 w-full">
+                            <div className="flex-1 bg-zinc-900 h-8 rounded-full flex items-center px-3 gap-2 text-zinc-500 text-[10px] font-mono">
+                                <span className="text-emerald-500">🔒</span>
+                                <span>command-deck.dev</span>
+                            </div>
+                        </div>
+                    )}
+
                     <iframe
                         key={refreshKey}
                         src={url}
-                        className="w-full h-full bg-white"
+                        className="flex-1 w-full bg-white"
                         style={{ border: 'none' }}
                         title="Device Simulator"
                     />
