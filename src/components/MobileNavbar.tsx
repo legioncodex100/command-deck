@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Home, Zap, Map, FileText, Clipboard, ClipboardCheck, Palette, Eye, Activity, X, Settings, LogOut } from 'lucide-react';
 import { CommandDeckLogo } from '@/components/branding/CommandDeckLogo';
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/services/supabase";
 import {
     Search, CenterCircle, DataBase, ColorPalette, DataBlob,
     Construction, Integration, CertificateCheck, MachineLearningModel,
@@ -63,11 +65,31 @@ const PILLAR_CONFIG: Record<string, { left: { icon: any, label: string }, right:
     }
 };
 
-export function MobileNavbar({ userProfile, userData }: { userProfile?: any, userData?: any }) {
+export function MobileNavbar() {
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Auth & Profile Logic
+    const { signOut, user } = useAuth();
+    const [profile, setProfile] = useState<{ display_name: string, full_name: string, role: string, avatar_url: string | null } | null>(null);
+
+    useEffect(() => {
+        if (user) {
+            supabase.from('profiles').select('*').eq('id', user.id).single()
+                .then(({ data }) => {
+                    if (data) {
+                        setProfile(data);
+                    }
+                    if (!data?.avatar_url && user.user_metadata?.avatar_url) {
+                        setProfile(prev => prev ? ({ ...prev, avatar_url: user.user_metadata.avatar_url }) : ({ display_name: '', full_name: '', role: 'OPERATIVE', avatar_url: user.user_metadata.avatar_url }));
+                    }
+                });
+        } else {
+            setProfile(null);
+        }
+    }, [user]);
 
     // Get current config based on path prefix
     const activePillarConfig = Object.entries(PILLAR_CONFIG).find(([path]) => pathname?.startsWith(path))?.[1];
@@ -240,12 +262,33 @@ export function MobileNavbar({ userProfile, userData }: { userProfile?: any, use
                         </div>
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-3 p-3 rounded-xl border border-zinc-800/50 bg-zinc-900/20 mb-2">
-                                <div className="h-10 w-10 rounded-full bg-emerald-900/20 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                                    <span className="font-bold">{userProfile?.full_name?.[0] || 'U'}</span>
+                                <div className="h-10 w-10 rounded-full bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0 flex items-center justify-center relative">
+                                    {(profile?.avatar_url || user?.user_metadata?.avatar_url) ? (
+                                        <img
+                                            src={profile?.avatar_url || user?.user_metadata?.avatar_url}
+                                            alt="User"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="h-full w-full bg-emerald-900/20 flex items-center justify-center text-emerald-500 font-bold">
+                                            {profile?.full_name?.[0] || user?.email?.[0] || 'U'}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-zinc-200">{userProfile?.full_name || 'User'}</span>
-                                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{userProfile?.role || 'Crew Member'}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-bold text-zinc-200">
+                                            {profile?.display_name || profile?.full_name || user?.email?.split('@')[0] || 'User'}
+                                        </span>
+                                    </div>
+                                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{profile?.role || 'Crew Member'}</span>
+
+                                    {/* Codename Badge if Display Name exists AND Full Name dominates, otherwise display name is the main one */}
+                                    {profile?.display_name && profile?.display_name !== profile?.full_name && (
+                                        <span className="text-[9px] font-mono text-emerald-500 uppercase tracking-wider mt-0.5">
+                                            {profile.full_name}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
