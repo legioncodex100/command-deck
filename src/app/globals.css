@@ -34,6 +34,8 @@
 @layer base {
   html {
     font-size: 114%;
+    height: 100dvh;
+    height: -webkit-fill-available;
   }
 
   /* Universal Font Reset - Nuclear Option */
@@ -43,6 +45,13 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    /* Prevent body scroll, let app containers handle it */
   }
 }
 
