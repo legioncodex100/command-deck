@@ -64,7 +64,7 @@ export default function StandardPillarLayout({
 
             {/* Left Panel: Roadmap/Context (Drawer on Mobile, Col 1-3 on Desktop) */}
             <div className={cn(
-                "transition-transform duration-300 ease-in-out z-50 flex flex-col overflow-hidden bg-[#020402]",
+                "transition-transform duration-300 ease-in-out z-50 flex flex-col overflow-hidden bg-[#020402] max-h-full min-h-0",
                 // Desktop
                 "lg:col-span-3 lg:static lg:translate-x-0 lg:w-auto lg:border-r",
                 borderColor,
@@ -80,7 +80,7 @@ export default function StandardPillarLayout({
             </div>
 
             {/* Center Panel: Chat/Main (Always Visible, Full Width on Mobile, Col 4-9 on Desktop) */}
-            <div className="lg:col-span-6 w-full h-full z-0 flex flex-col relative bg-black border-r border-zinc-900/50">
+            <div className="lg:col-span-6 w-full h-full z-0 flex flex-col relative bg-black border-r border-zinc-900/50 overflow-hidden min-h-0 max-h-full">
                 {React.isValidElement(mainContent)
                     ? React.cloneElement(mainContent as React.ReactElement<any>, { className: "h-full w-full" })
                     : mainContent
@@ -89,7 +89,7 @@ export default function StandardPillarLayout({
 
             {/* Right Panel: Artifacts/Tools (Drawer on Mobile, Col 10-12 on Desktop) */}
             <div className={cn(
-                "transition-transform duration-300 ease-in-out z-50 flex flex-col overflow-hidden bg-[#050505]",
+                "transition-transform duration-300 ease-in-out z-50 flex flex-col overflow-hidden bg-[#050505] max-h-full min-h-0",
                 // Desktop
                 "lg:col-span-3 lg:static lg:translate-x-0 lg:w-auto lg:border-l",
                 borderColor,
