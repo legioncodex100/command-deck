@@ -1,10 +1,9 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDevMode } from '@/hooks/DevModeContext';
-import { AlertTriangle, Terminal, Eye, Activity, LayoutDashboard, MousePointerClick } from 'lucide-react';
+import { AlertTriangle, Terminal, Eye, Activity, LayoutDashboard, MousePointerClick, Smartphone, Lock, MoreVertical, RotateCcw } from 'lucide-react';
 import { DebugPanel } from './DebugPanel';
-import { useEffect } from 'react';
 
 export function DevModeOverlay({ children }: { children: React.ReactNode }) {
     const { isDevMode, toggleDevMode, debugFlags, setDebugFlags, setSelectedElement } = useDevMode();
@@ -81,8 +80,35 @@ export function DevModeOverlay({ children }: { children: React.ReactNode }) {
                 DEVELOPER MODE // HOST DEBUGGER
             </div>
 
+            {/* Simulated Mobile Address Bar (Chrome) */}
+            {debugFlags.simulateMobileChrome && (
+                <div className="absolute top-0 left-0 right-0 z-[60] bg-zinc-900 border-b border-zinc-800 h-16 flex items-center px-4 gap-3 shadow-xl transform transition-transform duration-200 ease-out origin-top">
+                    <div className="flex-1 bg-zinc-800 h-10 rounded-full flex items-center px-4 gap-2 text-zinc-400 text-xs font-mono">
+                        <Lock className="w-3 h-3 text-emerald-500" />
+                        <span className="text-zinc-300">command-deck.dev</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-zinc-500">
+                        <RotateCcw className="w-4 h-4 hover:text-white transition-colors cursor-pointer" />
+                        <div className="w-5 h-5 rounded border-2 border-current flex items-center justify-center font-bold text-[10px] cursor-pointer hover:text-white transition-colors">1</div>
+                        <MoreVertical className="w-5 h-5 cursor-pointer hover:text-white transition-colors" />
+                    </div>
+                </div>
+            )}
+
+            {/* Content Wrapper - Pushes content down when Chrome is active */}
+            <div className={`w-full h-full transition-all duration-300 ${debugFlags.simulateMobileChrome ? 'pt-16' : ''}`}>
+                {children}
+            </div>
+
             {/* Debug Panel Toggle (Floating) */}
             <div className="absolute bottom-4 right-4 z-50 flex flex-col gap-2">
+                <button
+                    onClick={() => setDebugFlags(prev => ({ ...prev, simulateMobileChrome: !prev.simulateMobileChrome }))}
+                    className={`p-2 rounded-full border shadow-xl transition-all ${debugFlags.simulateMobileChrome ? 'bg-zinc-100 border-white text-black' : 'bg-black border-zinc-800 text-zinc-500 hover:text-white'}`}
+                    title="Toggle Mobile Chrome Simulator"
+                >
+                    <Smartphone className="h-4 w-4" />
+                </button>
                 <button
                     onClick={() => setDebugFlags(prev => ({ ...prev, staleSimulation: !prev.staleSimulation }))}
                     className={`p-2 rounded-full border shadow-xl transition-all ${debugFlags.staleSimulation ? 'bg-amber-600 border-amber-400 text-black' : 'bg-black border-zinc-800 text-zinc-500 hover:text-amber-500'}`}
@@ -98,8 +124,6 @@ export function DevModeOverlay({ children }: { children: React.ReactNode }) {
                     <Terminal className="h-4 w-4" />
                 </button>
             </div>
-
-            {children}
 
             {/* Conditionally Render Debug Panel */}
             {debugFlags.showContextInspector && <DebugPanel />}

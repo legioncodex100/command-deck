@@ -11,6 +11,7 @@ interface DevModeContextType {
         showRippleTrigger: boolean;
         staleSimulation: boolean;
         xRayMode: boolean;
+        simulateMobileChrome: boolean;
     };
     setDebugFlags: React.Dispatch<React.SetStateAction<{
         showContextInspector: boolean;
@@ -18,6 +19,7 @@ interface DevModeContextType {
         showRippleTrigger: boolean;
         staleSimulation: boolean;
         xRayMode: boolean;
+        simulateMobileChrome: boolean;
     }>>;
     selectedElement: {
         component: string | null;
@@ -38,6 +40,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
         showRippleTrigger: false,
         staleSimulation: false,
         xRayMode: false,
+        simulateMobileChrome: false,
     });
     const [selectedElement, setSelectedElement] = useState<{
         component: string | null;
