@@ -244,105 +244,108 @@ export function MobileNavbar({ mode = 'deck' }: MobileNavbarProps) {
                 "fixed inset-x-0 bottom-0 z-[80] bg-[#09090b] border-t border-zinc-800 rounded-t-3xl transform transition-transform duration-300 ease-out flex flex-col h-[75vh]",
                 isMenuOpen ? "translate-y-0" : "translate-y-full"
             )}>
-                {/* Drag Handle */}
-                <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setIsMenuOpen(false)}>
-                    <div className="w-12 h-1.5 bg-zinc-800 rounded-full" />
-                </div>
-
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold tracking-widest text-emerald-500 uppercase">Command Deck</span>
-                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <div onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} className="flex-none cursor-grab active:cursor-grabbing">
+                    {/* Drag Handle */}
+                    <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setIsMenuOpen(false)}>
+                        <div className="w-12 h-1.5 bg-zinc-800 rounded-full" />
                     </div>
-                    <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-zinc-900/50 rounded-full text-zinc-500 hover:text-white">
-                        <X className="h-5 w-5" />
-                    </button>
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold tracking-widest text-emerald-500 uppercase">Command Deck</span>
+                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        </div>
+                        <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-zinc-900/50 rounded-full text-zinc-500 hover:text-white">
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-8 max-w-5xl mx-auto w-full">
 
-                    {/* Project Switcher (Hidden in Hangar Mode for simplicity, or keep? keeping for now) */}
-                    {/* Actually, let's keep it. Admins might want to switch context even in Hangar. */}
-                    <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden">
-                        <button
-                            onClick={() => setIsProjectExpanded(!isProjectExpanded)}
-                            className="w-full flex items-center justify-between p-3 active:bg-zinc-800/50 transition-colors"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded bg-zinc-900 text-emerald-500 flex items-center justify-center shrink-0 font-bold border border-zinc-800">
-                                    {isLoading ? "..." : (activeProject?.name.substring(0, 1) || "+")}
+                    {/* Project Switcher - Only in Deck Mode */}
+                    {mode === 'deck' && (
+                        <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden">
+                            <button
+                                onClick={() => setIsProjectExpanded(!isProjectExpanded)}
+                                className="w-full flex items-center justify-between p-3 active:bg-zinc-800/50 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded bg-zinc-900 text-emerald-500 flex items-center justify-center shrink-0 font-bold border border-zinc-800">
+                                        {isLoading ? "..." : (activeProject?.name.substring(0, 1) || "+")}
+                                    </div>
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Active Project</span>
+                                        <span className="text-sm font-bold text-zinc-200">{activeProject?.name || "Select Project"}</span>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col items-start">
-                                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Active Project</span>
-                                    <span className="text-sm font-bold text-zinc-200">{activeProject?.name || "Select Project"}</span>
-                                </div>
-                            </div>
-                            <ChevronDown className={cn("h-4 w-4 text-zinc-500 transition-transform duration-300", isProjectExpanded && "rotate-180")} />
-                        </button>
+                                <ChevronDown className={cn("h-4 w-4 text-zinc-500 transition-transform duration-300", isProjectExpanded && "rotate-180")} />
+                            </button>
 
-                        {/* Expandable Project List */}
-                        <div className={cn(
-                            "grid transition-all duration-300 ease-in-out bg-zinc-950/50",
-                            isProjectExpanded ? "grid-rows-[1fr] border-t border-zinc-800" : "grid-rows-[0fr]"
-                        )}>
-                            <div className="overflow-hidden">
-                                <div className="p-2 space-y-1">
-                                    {projects.map(p => (
-                                        <button
-                                            key={p.id}
-                                            onClick={() => { switchProject(p.id); setIsProjectExpanded(false); setIsMenuOpen(false); router.push('/dashboard'); }}
-                                            className={cn(
-                                                "w-full flex items-center justify-between p-2 rounded-lg text-sm transition-colors",
-                                                activeProject?.id === p.id
-                                                    ? "bg-emerald-950/20 text-emerald-400 border border-emerald-500/20"
-                                                    : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
-                                            )}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <Folder className="h-4 w-4" />
-                                                <span>{p.name}</span>
-                                            </div>
-                                            {activeProject?.id === p.id && <Check className="h-3 w-3" />}
-                                        </button>
-                                    ))}
-
-                                    <div className="h-px bg-zinc-800 my-2" />
-
-                                    {isCreatingProject ? (
-                                        <div className="flex items-center gap-2 p-1 animate-in fade-in slide-in-from-left-2">
-                                            <input
-                                                autoFocus
-                                                type="text"
-                                                placeholder="New Project Name..."
-                                                className="flex-1 bg-zinc-900 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
-                                                value={newProjectName}
-                                                onChange={(e) => setNewProjectName(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') handleCreateProject();
-                                                    if (e.key === 'Escape') setIsCreatingProject(false);
-                                                }}
-                                            />
+                            {/* Expandable Project List */}
+                            <div className={cn(
+                                "grid transition-all duration-300 ease-in-out bg-zinc-950/50",
+                                isProjectExpanded ? "grid-rows-[1fr] border-t border-zinc-800" : "grid-rows-[0fr]"
+                            )}>
+                                <div className="overflow-hidden">
+                                    <div className="p-2 space-y-1">
+                                        {projects.map(p => (
                                             <button
-                                                onClick={handleCreateProject}
-                                                className="p-2 bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 border border-emerald-500/20"
+                                                key={p.id}
+                                                onClick={() => { switchProject(p.id); setIsProjectExpanded(false); setIsMenuOpen(false); router.push('/dashboard'); }}
+                                                className={cn(
+                                                    "w-full flex items-center justify-between p-2 rounded-lg text-sm transition-colors",
+                                                    activeProject?.id === p.id
+                                                        ? "bg-emerald-950/20 text-emerald-400 border border-emerald-500/20"
+                                                        : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                                                )}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Folder className="h-4 w-4" />
+                                                    <span>{p.name}</span>
+                                                </div>
+                                                {activeProject?.id === p.id && <Check className="h-3 w-3" />}
+                                            </button>
+                                        ))}
+
+                                        <div className="h-px bg-zinc-800 my-2" />
+
+                                        {isCreatingProject ? (
+                                            <div className="flex items-center gap-2 p-1 animate-in fade-in slide-in-from-left-2">
+                                                <input
+                                                    autoFocus
+                                                    type="text"
+                                                    placeholder="New Project Name..."
+                                                    className="flex-1 bg-zinc-900 border border-emerald-500/50 rounded px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
+                                                    value={newProjectName}
+                                                    onChange={(e) => setNewProjectName(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') handleCreateProject();
+                                                        if (e.key === 'Escape') setIsCreatingProject(false);
+                                                    }}
+                                                />
+                                                <button
+                                                    onClick={handleCreateProject}
+                                                    className="p-2 bg-emerald-500/10 text-emerald-500 rounded hover:bg-emerald-500/20 border border-emerald-500/20"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => setIsCreatingProject(true)}
+                                                className="w-full flex items-center gap-2 p-2 rounded-lg text-sm text-zinc-400 hover:text-emerald-400 hover:bg-zinc-900 transition-colors"
                                             >
                                                 <Plus className="h-4 w-4" />
+                                                <span>Create New Project</span>
                                             </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => setIsCreatingProject(true)}
-                                            className="w-full flex items-center gap-2 p-2 rounded-lg text-sm text-zinc-400 hover:text-emerald-400 hover:bg-zinc-900 transition-colors"
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                            <span>Create New Project</span>
-                                        </button>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Navigation Links (Mode Switched) */}
                     <div>
