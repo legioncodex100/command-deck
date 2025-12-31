@@ -158,7 +158,7 @@ export function HangarFlightDeck() {
                 </div>
             )}
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 pb-24">
                 {todoTasks.map(task => (
                     <div key={task.id} className="p-3 border border-zinc-800/80 rounded bg-black/40 hover:border-indigo-500/30 group transition-all">
                         <div className="flex justify-between items-start mb-2">
@@ -350,7 +350,7 @@ export function HangarFlightDeck() {
             <div className="p-3 border-b border-zinc-900 bg-zinc-900/30 font-bold text-xs text-zinc-400 uppercase tracking-widest shrink-0">
                 Mission Log
             </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 pb-24">
                 {doneTasks.map(task => (
                     <div key={task.id} className="p-3 border border-zinc-800/30 rounded bg-zinc-900/20 flex items-center gap-3 opacity-60">
                         <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />

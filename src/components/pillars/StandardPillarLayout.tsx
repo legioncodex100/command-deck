@@ -76,7 +76,10 @@ export default function StandardPillarLayout({
                 )}>
                     {/* Clone element to inject onClose if it's a valid React element */}
                     {React.isValidElement(leftContent)
-                        ? React.cloneElement(leftContent as React.ReactElement<any>, { onClose: closeDrawer, className: "h-full flex flex-col" })
+                        ? React.cloneElement(leftContent as React.ReactElement<any>, {
+                            onClose: closeDrawer,
+                            className: cn("h-full flex flex-col", (leftContent as React.ReactElement<any>).props.className)
+                        })
                         : leftContent
                     }
                 </div>
@@ -84,7 +87,9 @@ export default function StandardPillarLayout({
                 {/* Center Panel: Chat/Main (Always Visible, Full Width on Mobile, Col 4-9 on Desktop) */}
                 <div className="lg:col-span-6 w-full h-full z-0 flex flex-col relative bg-black border-r border-zinc-900/50 overflow-hidden min-h-0 max-h-full">
                     {React.isValidElement(mainContent)
-                        ? React.cloneElement(mainContent as React.ReactElement<any>, { className: "h-full w-full" })
+                        ? React.cloneElement(mainContent as React.ReactElement<any>, {
+                            className: cn("h-full w-full", (mainContent as React.ReactElement<any>).props.className)
+                        })
                         : mainContent
                     }
                 </div>
@@ -101,7 +106,10 @@ export default function StandardPillarLayout({
                 )}>
                     {/* Clone element to inject onClose if it's a valid React element */}
                     {React.isValidElement(rightContent)
-                        ? React.cloneElement(rightContent as React.ReactElement<any>, { onClose: closeDrawer, className: "h-full flex flex-col" })
+                        ? React.cloneElement(rightContent as React.ReactElement<any>, {
+                            onClose: closeDrawer,
+                            className: cn("h-full flex flex-col", (rightContent as React.ReactElement<any>).props.className)
+                        })
                         : rightContent
                     }
                 </div>
