@@ -89,3 +89,14 @@ Build a "civilian-facing" interface (The Deck) for the Command Deck, allowing no
     - **Migration Repair**: Resolved version collisions (e.g., `20251230000700`) and "already exists" errors by making all migration scripts idempotent (`IF NOT EXISTS`, conditional policy creation).
     - **Schema Visualization**: Successfully deployed 34 migration files, establishing a robust foundation for the `ai_crew`, `evolutions`, and `task_chat_messages` tables.
     - **Constraint Fixes**: Updated strict `CHECK` constraints (document types) to `NOT VALID` to gracefully handle legacy data while enforcing rules for new entries.
+
+### Session: Landing Page & Layout Polish
+- **Goal**: Refine the initial user experience (Landing Page) and ensure robust mobile responsiveness.
+- **Accomplished**:
+    - **Animation Tuning**: Slowed landing page typing speed (150ms) and reduced glitch duration (2.5s) for a more cinematic feel.
+    - **Header Formatting**: Fixed wrapping issues on "COMMAND YOUR CODEBASE" using `whitespace-nowrap` and expanded container width.
+    - **Font Standardization**: Adopted **Geist Mono** as the global default font for all UI/Body text, while enforcing **VT323** for specialized headers via `font-vt323-force`.
+    - **Mobile Layout**: Implemented a "Solid Flexbox Sidebar" to prevent content overlap and configured dynamic "Safe Area" padding (`pt-[calc(env(safe-area-inset-top)+3rem+7px)]`) to perfectly clear notches on all devices.
+- **Key Decisions**:
+    - **Global Monospace**: Switched the entire application to Geist Mono to reinforce the "Terminal/Command Deck" aesthetic at a foundational level.
+    - **CSS Env Variables**: Moved away from hardcoded padding to `env(safe-area-inset-top)` to future-proof mobile layout against different device form factors (Notch vs. Dynamic Island vs. Standard).
